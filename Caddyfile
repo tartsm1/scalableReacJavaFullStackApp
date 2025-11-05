@@ -1,0 +1,17 @@
+
+# Caddy creates prod like environment , good for testing authentification
+
+# Define the local address Caddy will listen on.
+# Caddy automatically provides HTTPS for localhost.
+localhost
+
+# Route API requests to the backend server running on port 8888.
+# The path matcher /api/* ensures that only requests starting with /api/
+# are forwarded to this backend.
+reverse_proxy /api/* localhost:8888
+
+# Set the root for the file server to the parent's build directory
+root * react_timetracking/build
+
+file_server
+

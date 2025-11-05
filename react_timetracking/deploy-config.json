@@ -1,0 +1,38 @@
+{
+  "deployment": {
+    "platforms": {
+      "netlify": {
+        "buildCommand": "npm run build",
+        "publishDirectory": "build",
+        "environmentVariables": [
+          "REACT_APP_AWS_REGION",
+          "REACT_APP_USER_POOL_ID", 
+          "REACT_APP_CLIENT_ID",
+          "REACT_APP_NAME",
+          "REACT_APP_VERSION"
+        ]
+      },
+      "vercel": {
+        "buildCommand": "npm run build",
+        "outputDirectory": "build",
+        "framework": "create-react-app"
+      },
+      "aws-s3": {
+        "bucketName": "your-time-tracking-app",
+        "region": "us-east-1",
+        "cloudFrontDistribution": true
+      },
+      "github-pages": {
+        "buildCommand": "npm run build",
+        "publishDirectory": "build",
+        "basePath": "/react_timetracking"
+      }
+    },
+    "environment": {
+      "production": {
+        "REACT_APP_NAME": "Time Tracking App",
+        "REACT_APP_VERSION": "1.0.0"
+      }
+    }
+  }
+} 

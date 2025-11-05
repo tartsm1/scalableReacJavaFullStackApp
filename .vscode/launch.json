@@ -1,0 +1,38 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "java app",
+            "request": "launch",
+            "mainClass": "com.krabi.MainVerticle",
+            "projectName": "java_timetracking",
+            "envFile": "${workspaceFolder}/env_dev"
+        },
+        {
+            "type": "node",
+            "name": "React App",
+            "request": "launch",
+             "envFile": "${workspaceFolder}/env_dev", 
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "start"
+            ],
+            "cwd": "${workspaceFolder}/react_timetracking",
+            "console": "integratedTerminal"
+        }
+    ],
+    "compounds": [
+        {
+            // This compound task runs both configurations above
+            "name": "Launch Backend and Frontend",
+            "configurations": [
+                "java app",
+                "React App"
+            ]
+        }
+    ]
+}

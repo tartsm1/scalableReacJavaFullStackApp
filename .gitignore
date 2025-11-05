@@ -1,0 +1,13 @@
+java_timetracking/.gradle/
+java_timetracking/.idea/
+java_timetracking/.vscode/
+java_timetracking/build/
+java_timetracking/bin/
+java_timetracking/gradle/
+.DS_Store
+react_timetracking/node_modules/
+react_timetracking/build/
+react_timetracking/package-lock.json
+react_timetracking/.env
+.idea/
+

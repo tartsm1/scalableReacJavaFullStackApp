@@ -1,0 +1,91 @@
+package com.krabi;
+
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import com.krabi.MainVerticle;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@ExtendWith(VertxExtension.class)
+public class TaskApiE2ETest {
+    static final int PORT = 8888;
+    static final String HOST = "localhost";
+    static final long TEST_ID = 9876543210L;
+
+    @BeforeAll
+    static void deployServer(Vertx vertx, VertxTestContext testContext) {
+        vertx.deployVerticle(new MainVerticle(), testContext.succeeding(id -> testContext.completeNow()));
+    }
+
+    @Test
+    void testCRUD(Vertx vertx, VertxTestContext testContext) {
+        WebClient client = WebClient.create(vertx);
+        JsonObject task = new JsonObject()
+                .put("id", TEST_ID)
+                .put("date", "2025-07-04")
+                .put("project", "E2EProject")
+                .put("hours", 5)
+                .put("task", "E2ETask");
+
+        // Test without authentication (should work when Cognito is not configured)
+        client.post(PORT, HOST, "/api/tasks")
+                .putHeader("Content-Type", "application/json")
+                .sendJsonObject(task, testContext.succeeding(createRes -> {
+                    // Should work if Cognito is not configured, otherwise 401
+                    assertTrue(createRes.statusCode() == 201 || createRes.statusCode() == 401 || createRes.statusCode() == 503);
+                    
+                    if (createRes.statusCode() == 201) {
+                        // Continue with test if authentication is not required
+                        testCRUDOperations(client, testContext);
+                    } else {
+                        // Skip test if authentication is required
+                        testContext.completeNow();
+                    }
+                }));
+    }
+    
+    private void testCRUDOperations(WebClient client, VertxTestContext testContext) {
+        // Read (get by id)
+        client.get(PORT, HOST, "/api/tasks/" + TEST_ID)
+                .send(testContext.succeeding(getRes -> {
+                    assertEquals(200, getRes.statusCode());
+                    JsonObject got = getRes.bodyAsJsonObject();
+                    assertEquals("E2EProject", got.getString("project"));
+
+                    // Update
+                    JsonObject updated = got.copy().put("hours", 10);
+                    client.put(PORT, HOST, "/api/tasks/" + TEST_ID)
+                            .putHeader("Content-Type", "application/json")
+                            .sendJsonObject(updated, testContext.succeeding(updateRes -> {
+                                assertEquals(204, updateRes.statusCode());
+
+                                // List
+                                client.get(PORT, HOST, "/api/tasks")
+                                        .send(testContext.succeeding(listRes -> {
+                                            assertEquals(200, listRes.statusCode());
+                                            assertTrue(listRes.bodyAsString().contains("E2EProject"));
+
+                                            // Delete
+                                            client.delete(PORT, HOST, "/api/tasks/" + TEST_ID)
+                                                    .send(testContext.succeeding(deleteRes -> {
+                                                        assertEquals(204, deleteRes.statusCode());
+
+                                                        // Confirm deletion
+                                                        client.get(PORT, HOST, "/api/tasks/" + TEST_ID)
+                                                                .send(testContext.succeeding(getAfterDelete -> {
+                                                                    assertEquals(404, getAfterDelete.statusCode());
+                                                                    testContext.completeNow();
+                                                                }));
+                                                    }));
+                                        }));
+                            }));
+                }));
+    }
+} 

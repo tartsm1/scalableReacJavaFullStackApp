@@ -1,0 +1,57 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    vertxVersion = '4.5.7'
+}
+
+dependencies {
+    implementation "io.vertx:vertx-core:$vertxVersion"
+    implementation "io.vertx:vertx-web:$vertxVersion"
+    implementation 'software.amazon.awssdk:dynamodb:2.25.32'
+    implementation 'software.amazon.awssdk:auth:2.25.32'
+    implementation 'software.amazon.awssdk:cognitoidentityprovider:2.25.32'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.1'
+    implementation 'com.auth0:java-jwt:4.4.0'
+    implementation 'com.auth0:jwks-rsa:0.22.1'
+    implementation 'org.slf4j:slf4j-api:2.0.13'
+    runtimeOnly 'ch.qos.logback:logback-classic:1.4.14'
+    testImplementation "io.vertx:vertx-junit5:$vertxVersion"
+    testImplementation "io.vertx:vertx-web-client:$vertxVersion"
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+}
+
+application {
+    mainClass = 'com.krabi.MainVerticle'
+}
+
+run {
+    environment 'COGNITO_USER_POOL_ID', 'eu-north-1_xxxxxxx'
+    environment 'COGNITO_CLIENT_ID', 'dsjfaskdfakjsfdas'
+    environment 'AWS_REGION', 'eu-north-1'
+}
+
+shadowJar {
+    archiveBaseName.set('java_timetracking')
+    archiveClassifier.set('')
+    archiveVersion.set('1.0.0')
+    manifest {
+        attributes 'Main-Class': 'com.krabi.MainVerticle'
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+test {
+    useJUnitPlatform()
+} 
