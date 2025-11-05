@@ -10,4 +10,4 @@ react_timetracking/build/
 react_timetracking/package-lock.json
 react_timetracking/.env
 .idea/
-
+env_dev
