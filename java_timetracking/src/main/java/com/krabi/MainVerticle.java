@@ -15,6 +15,16 @@ import org.slf4j.LoggerFactory;
 
 public class MainVerticle extends AbstractVerticle {
     private static final Logger logger = LoggerFactory.getLogger(MainVerticle.class);
+    private static final String COGNITO_USER_POOL_ID = "COGNITO_USER_POOL_ID";
+    private static final String COGNITO_CLIENT_ID = "COGNITO_CLIENT_ID";
+    private static final String AWS_REGION = "AWS_REGION";
+    private static final String PORT = "port";
+    private static final String HOST = "host";
+    private static final String DEV = "dev";
+    private static final String PLEASE_SET_AWS_ENVIRONMENT_VARIABLES = "Please set COGNITO_USER_POOL_ID, COGNITO_CLIENT_ID, and AWS_REGION environment variables.";
+    private static final String HTTP_SERVER_STARTED_ON_PORT = "HTTP server started on port ";
+    private static final String HTTP_SERVER_FAILED_TO_START = "HTTP server failed to start";
+    private static final String USER = "user";
     boolean isDev = false;
 
     public static void main(String[] args) {
@@ -29,15 +39,15 @@ public class MainVerticle extends AbstractVerticle {
 
         // These values should be configured via environment variables
         // Initialize Cognito authentication
-        String userPoolId = System.getenv("COGNITO_USER_POOL_ID");
-        String clientId = System.getenv("COGNITO_CLIENT_ID");
-        String region = System.getenv("AWS_REGION");
+        String userPoolId = System.getenv(COGNITO_USER_POOL_ID);
+        String clientId = System.getenv(COGNITO_CLIENT_ID);
+        String region = System.getenv(AWS_REGION);
 
-        String port = System.getenv("port");
-        String host = System.getenv("host");
+        String port = System.getenv(PORT);
+        String host = System.getenv(HOST);
 
         // Check for dev mode
-        isDev = "true".equalsIgnoreCase(System.getenv("dev"));
+        isDev = "true".equalsIgnoreCase(System.getenv(DEV));
         logger.info("isDev: {}", isDev);
         logger.info("userPoolId: {}", userPoolId);
         logger.info("clientId: {}", clientId);
@@ -50,9 +60,8 @@ public class MainVerticle extends AbstractVerticle {
         final AuthMiddleware authMiddleware;
         if (!isDev) {
             if (userPoolId == null || clientId == null || region == null) {
-                logger.warn("Cognito configuration not found. Authentication will be disabled.");
-                logger.warn(
-                        "Please set COGNITO_USER_POOL_ID, COGNITO_CLIENT_ID, and AWS_REGION environment variables.");
+                logger.warn(PLEASE_SET_AWS_ENVIRONMENT_VARIABLES);
+                System.exit(-1);
             }
             authService = new CognitoAuthService(vertx, userPoolId, clientId, region);
             authMiddleware = new AuthMiddleware(authService);
@@ -108,9 +117,9 @@ public class MainVerticle extends AbstractVerticle {
                 .listen(Integer.parseInt(port), host, http -> {
                     if (http.succeeded()) {
                         startPromise.complete();
-                        logger.info("HTTP server started on port " + port);
+                        logger.info(HTTP_SERVER_STARTED_ON_PORT + "{}", port);
                     } else {
-                        logger.error("HTTP server failed to start", http.cause());
+                        logger.error(HTTP_SERVER_FAILED_TO_START, http.cause());
                         startPromise.fail(http.cause());
                     }
                 });
@@ -119,8 +128,8 @@ public class MainVerticle extends AbstractVerticle {
     private String getUserNameFromCtx(RoutingContext ctx) {
         // Set username from authenticated user
         String username = null;
-        if (ctx.get("user") != null && ctx.get("user") instanceof io.vertx.core.json.JsonObject) {
-            username = ((io.vertx.core.json.JsonObject) ctx.get("user")).getString("username");
+        if (ctx.get(USER) != null && ctx.get(USER) instanceof io.vertx.core.json.JsonObject) {
+            username = ((io.vertx.core.json.JsonObject) ctx.get(USER)).getString(AuthMiddleware.USERNAME);
         }
         return username;
     }

@@ -8,6 +8,12 @@ import org.slf4j.LoggerFactory;
 
 public class AuthMiddleware {
     private static final Logger logger = LoggerFactory.getLogger(AuthMiddleware.class);
+    private static final String DEVUSER = "devuser";
+    static final String USERNAME = "username";
+    protected static final String INVALID_TOKEN = "Invalid token";
+    protected static final String MISSING_OR_INVALID_AUTHORIZATION_HEADER = "Missing or invalid Authorization header";
+    protected static final String AUTHENTICATION_REQUIRED = "Authentication required";
+    protected static final String INSUFFICIENT_PERMISSIONS = "Insufficient permissions";
     private final CognitoAuthService authService;
 
     public AuthMiddleware(CognitoAuthService authService) {
@@ -15,14 +21,15 @@ public class AuthMiddleware {
     }
 
     public AuthMiddleware() {
-        this.authService = null; // In development environment
+        // In development environment
+        this.authService = null;
     }
 
     public Handler<RoutingContext> authenticate() {
         if (authService == null) { // In development environment
-            logger.info("devuser: devuser");
+            logger.info("In development - devuser");
             return ctx -> ctx.put("user", new JsonObject()
-                    .put("username", "devuser"))
+                    .put(USERNAME, DEVUSER))
                     .next();
         }
 
@@ -34,7 +41,7 @@ public class AuthMiddleware {
                         .setStatusCode(401)
                         .putHeader("content-type", "application/json")
                         .end(new JsonObject()
-                                .put("error", "Missing or invalid Authorization header")
+                                .put("error", MISSING_OR_INVALID_AUTHORIZATION_HEADER)
                                 .encode());
                 return;
             }
@@ -51,7 +58,7 @@ public class AuthMiddleware {
                                 .setStatusCode(401)
                                 .putHeader("content-type", "application/json")
                                 .end(new JsonObject()
-                                        .put("error", "Invalid token")
+                                        .put("error", INVALID_TOKEN)
                                         .put("message", err.getMessage())
                                         .encode());
                     });
@@ -66,7 +73,7 @@ public class AuthMiddleware {
                         .setStatusCode(401)
                         .putHeader("content-type", "application/json")
                         .end(new JsonObject()
-                                .put("error", "Authentication required")
+                                .put("error", AUTHENTICATION_REQUIRED)
                                 .encode());
                 return;
             }
@@ -80,7 +87,7 @@ public class AuthMiddleware {
                         .setStatusCode(403)
                         .putHeader("content-type", "application/json")
                         .end(new JsonObject()
-                                .put("error", "Insufficient permissions")
+                                .put("error", INSUFFICIENT_PERMISSIONS)
                                 .put("required_role", role)
                                 .encode());
             }
