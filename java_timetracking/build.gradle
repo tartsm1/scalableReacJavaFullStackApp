@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'application'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'com.gradleup.shadow' version '9.2.2'
 }
 
 repositories {
@@ -9,7 +9,7 @@ repositories {
 }
 
 ext {
-    vertxVersion = '4.5.8'
+    vertxVersion = '4.5.22'
     awsSdkVersion = '2.25.32'
 }
 
@@ -31,12 +31,6 @@ dependencies {
 
 application {
     mainClass = 'com.krabi.MainVerticle'
-}
-
-run {
-    environment 'COGNITO_USER_POOL_ID', 'eu-north-1_xxxxxxx'
-    environment 'COGNITO_CLIENT_ID', 'dsjfaskdfakjsfdas'
-    environment 'AWS_REGION', 'eu-north-1'
 }
 
 shadowJar {
