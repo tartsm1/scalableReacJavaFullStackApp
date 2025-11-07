@@ -1,0 +1,44 @@
+version: "0.2"
+
+env:
+  shell: bash
+
+phases:
+  install:
+    commands:
+      - sudo yum install java-17-amazon-corretto-devel
+      - wget https://services.gradle.org/distributions/gradle-8.9-bin.zip
+      - sudo unzip -d /opt/gradle gradle-8.9-bin.zip
+      - echo "export GRADLE_HOME=/opt/gradle/gradle-8.9" > gradle.sh
+      - echo "export PATH=/opt/gradle/gradle-8.9/bin:${PATH}" >> gradle.sh
+      - sudo mv gradle.sh /etc/profile.d/
+      - sudo chmod +x /etc/profile.d/gradle.sh
+      - source /etc/profile.d/gradle.sh
+      # Download and install Node.js:
+     # - nvm install 22
+      # Verify the Node.js version:
+      - node -v # Should print "v22.17.0".
+      - nvm current # Should print "v22.17.0".
+      # Verify npm version:
+      - npm -v # Should print "10.9.2".
+
+  build:
+    commands:
+      - cd tarmo_javaserver
+      - gradle build shadowJar
+      - cd ..
+      - cd react_timetracking
+      - npm install --legacy-peer-deps
+      - npm run build
+      - zip -r reactapp.zip build/*
+
+artifacts:
+  files:
+    - tarmo_javaserver/build/libs/java-timetracking-1.0.0.jar
+    - react_timetracking/react-timetracking.zip
+  discard-paths: "yes"
+
+cache:
+  paths:
+  
+    
