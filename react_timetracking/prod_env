@@ -8,11 +8,11 @@ REACT_APP_AWS_REGION=eu-north-1
 
 # AWS Cognito User Pool ID (format: region_poolid)
 # Found in AWS Console > Cognito > User Pools > Your Pool > General Settings
-REACT_APP_USER_POOL_ID=eu-north-1_xxxxxxx
+REACT_APP_COGNITO_USER_POOL_ID=eu-north-1_dsfsdf
 
 # AWS Cognito App Client ID
 # Found in AWS Console > Cognito > User Pools > Your Pool > App Integration > App Clients
-REACT_APP_CLIENT_ID=dsjfaskdfakjsfdas
+REACT_APP_COGNITO_CLIENT_ID=dfgdgdfgdfg
 
 # Optional: App Name
 REACT_APP_NAME="Time Tracking App"

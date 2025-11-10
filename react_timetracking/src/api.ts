@@ -1,26 +1,22 @@
-import { fetchAuthSession, getCurrentUser } from 'aws-amplify/auth';
-
-export interface Task {
-  id: number;
-  project: string;
-  task: string;
-  date: string;
-  hours: number;
-}
+import { CognitoUserSession } from 'amazon-cognito-identity-js';
+import { userPool } from './services/cognito';
 
 // Use relative URLs to send requests to the same host/port as the app
 const API_BASE_URL = '/api';
 
 async function getAuthHeaders(contentType: string | null = null): Promise<HeadersInit> {
   try {
-    const session = await fetchAuthSession();
-    const idToken = session.tokens?.idToken?.toString();
-    let username = undefined;
-    try {
-      const user = await getCurrentUser();
-      username = user.username;
-    } catch {}
+    const cognitoUser = userPool.getCurrentUser();
+    if (!cognitoUser) {
+      throw new Error("No current user");
+    }
+    const session: CognitoUserSession = await new Promise((resolve, reject) => {
+      cognitoUser.getSession((err: Error | null, session: CognitoUserSession | null) => err || !session ? reject(err) : resolve(session));
+    });
+    const idToken = session.getIdToken().getJwtToken();
+    const username = cognitoUser.getUsername();
     const headers: HeadersInit = {};
+
     if (idToken) {
       headers['Authorization'] = `Bearer ${idToken}`;
     }
@@ -35,6 +31,14 @@ async function getAuthHeaders(contentType: string | null = null): Promise<Header
     // Not authenticated, return only content-type if needed
     return contentType ? { 'Content-Type': contentType } : {};
   }
+}
+
+export interface Task {
+  id: number;
+  project: string;
+  task: string;
+  date: string;
+  hours: number;
 }
 
 export async function getAllTasks(): Promise<Task[]> {

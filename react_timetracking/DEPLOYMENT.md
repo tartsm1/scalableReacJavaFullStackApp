@@ -145,8 +145,8 @@ vercel --prod
 Set these environment variables in your deployment platform:
 
 - `REACT_APP_AWS_REGION`: Your AWS region (e.g., us-east-1)
-- `REACT_APP_USER_POOL_ID`: Your Cognito User Pool ID
-- `REACT_APP_CLIENT_ID`: Your Cognito App Client ID
+- `REACT_APP_COGNITO_USER_POOL_ID`: Your Cognito User Pool ID
+- `REACT_APP_COGNITO_CLIENT_ID`: Your Cognito App Client ID
 - `REACT_APP_NAME`: App name (optional)
 - `REACT_APP_VERSION`: App version (optional)
 

@@ -4,22 +4,20 @@
   "private": true,
   "proxy": "http://localhost:8888",
   "dependencies": {
-    "@aws-amplify/ui-react": "^6.11.2",
     "@aws-sdk/client-dynamodb": "^3.840.0",
     "@aws-sdk/lib-dynamodb": "^3.840.0",
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^7.2.0",
-    "@mui/material": "^7.2.0",
-    "@typescript-eslint/parser": "^8.35.1",
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@mui/icons-material": "^5.15.21",
+    "@mui/material": "^5.15.21",
     "ajv": "^8.17.1",
     "ajv-keywords": "^5.1.0",
-    "aws-amplify": "^6.15.3",
+    "amazon-cognito-identity-js": "^6.3.15",
     "cra-template-pwa-typescript": "2.0.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-scripts": "5.0.1",
-    "web-vitals": "^5.0.3"
+    "web-vitals": "^4.2.1"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -46,16 +44,15 @@
     ]
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.6.3",
-    "@types/jest": "^30.0.0",
+    "@testing-library/jest-dom": "^6.4.6",
+    "@types/jest": "^29.5.12",
     "@types/node-fetch": "^2.6.12",
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
     "identity-obj-proxy": "^3.0.0",
-    "jest": "^30.0.4",
     "node-fetch": "^3.3.2",
-    "ts-jest": "^29.4.0",
-    "typescript": "^5.8.3"
+    "ts-jest": "^29.1.5",
+    "typescript": "^4.9.5"
   },
   "description": "A modern, responsive time tracking application built with React, TypeScript, and Material-UI. Users can track their daily work by project and task, with comprehensive reporting and analytics.",
   "main": "package.json",

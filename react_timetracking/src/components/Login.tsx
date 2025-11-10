@@ -1,3 +1,4 @@
+// src/components/Login.tsx
 import React, { useState } from 'react';
 import {
   Box,
@@ -8,6 +9,7 @@ import {
   Alert,
   Link,
   Container,
+  Grid,
 } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -22,14 +24,14 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignUp, onSwitchToForgotPasswor
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, error, clearError } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     clearError();
-
     try {
       await signIn(username, password);
-    } catch (error) {
+      // The AuthContext will handle the redirect on successful login
+    } catch (err) {
       // Error is handled by the auth context
     } finally {
       setIsLoading(false);
@@ -50,9 +52,6 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignUp, onSwitchToForgotPasswor
           <Typography component="h1" variant="h4" align="center" gutterBottom>
             Sign In
           </Typography>
-          <Typography variant="body2" align="center" color="text.secondary" sx={{ mb: 3 }}>
-            Welcome back! Please sign in to your account.
-          </Typography>
 
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -60,7 +59,7 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignUp, onSwitchToForgotPasswor
             </Alert>
           )}
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+          <Box component="form" onSubmit={handleLogin} sx={{ mt: 1 }}>
             <TextField
               margin="normal"
               required
@@ -96,23 +95,18 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignUp, onSwitchToForgotPasswor
             >
               {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
-            <Box sx={{ textAlign: 'center' }}>
-              <Link
-                component="button"
-                variant="body2"
-                onClick={onSwitchToForgotPassword}
-                sx={{ mr: 2 }}
-              >
-                Forgot password?
-              </Link>
-              <Link
-                component="button"
-                variant="body2"
-                onClick={onSwitchToSignUp}
-              >
-                Don't have an account? Sign Up
-              </Link>
-            </Box>
+            <Grid container>
+              <Grid item xs>
+                <Link component="button" variant="body2" onClick={onSwitchToForgotPassword}>
+                  Forgot password?
+                </Link>
+              </Grid>
+              <Grid item>
+                <Link component="button" variant="body2" onClick={onSwitchToSignUp}>
+                  {"Don't have an account? Sign Up"}
+                </Link>
+              </Grid>
+            </Grid>
           </Box>
         </Paper>
       </Box>
@@ -120,4 +114,4 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignUp, onSwitchToForgotPasswor
   );
 };
 
-export default Login; 
+export default Login;
