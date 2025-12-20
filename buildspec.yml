@@ -1,44 +1,40 @@
-version: "0.2"
-
-env:
-  shell: bash
+version: 0.2
 
 phases:
-  install:
-    runtime-versions:
-      java: corretto21
-      nodejs: 22
+  pre_build:
     commands:
-      # - sudo yum install java-21-amazon-corretto-devel # No longer needed, handled by runtime-versions
-      - wget https://services.gradle.org/distributions/gradle-9.2.0-bin.zip
-      - sudo unzip -d /opt/gradle gradle-9.2.0-bin.zip
-      - echo "export GRADLE_HOME=/opt/gradle/gradle-9.2.0" > gradle.sh
-      - echo "export PATH=/opt/gradle/gradle-9.2.0/bin:${PATH}" >> gradle.sh
-      - sudo mv gradle.sh /etc/profile.d/
-      - sudo chmod +x /etc/profile.d/gradle.sh
-      - source /etc/profile.d/gradle.sh
-      - echo "Verifying Node.js and npm versions"
-      - node -v
-      - npm -v
+      - echo Working with $REPOSITORY_URI
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin $REPOSITORY_URI
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - BUILD_TAG=${COMMIT_HASH:=latest}
 
   build:
     commands:
+      - echo Building image with tag $BUILD_TAG
+      - echo Build started on `date`
+      - echo Building the Java Docker image...
       - cd java_timetracking
-      - gradle build shadowJar
+      - docker build -t $REPOSITORY_URI/javaapp:latest .
+      - docker tag $REPOSITORY_URI/javaapp:latest $REPOSITORY_URI/javaapp
       - cd ..
+      - echo Building the React Docker image...
       - cd react_timetracking
-      - npm install
-      - npm run build
-      - cd build
-      - zip -r react-timetracking.zip *
+      - docker build -t $REPOSITORY_URI/reactapp:latest .
+      - docker tag $REPOSITORY_URI/reactapp:latest $REPOSITORY_URI/reactapp
+      - cd ..
+
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker images...
+      - docker push $REPOSITORY_URI/javaapp:latest
+      - docker push $REPOSITORY_URI/javaapp:$BUILD_TAG
+      - docker push $REPOSITORY_URI/reactapp:latest
+      - docker push $REPOSITORY_URI/reactapp:$BUILD_TAG
+      - echo Writing image definitions file...
+      - printf '[{"name":"java-container","imageUri":"%s"},{"name":"react-container","imageUri":"%s"}]' $REPOSITORY_URI/javaapp:$BUILD_TAG $REPOSITORY_URI/reactapp:$BUILD_TAG > imagedefinitions.json
 
 artifacts:
   files:
-    - java_timetracking/build/libs/java_timetracking-1.0.0.jar
-    - react_timetracking/build/react-timetracking.zip
-  discard-paths: "yes"
-
-cache:
-  paths:
-  
-    
+    - imagedefinitions.json

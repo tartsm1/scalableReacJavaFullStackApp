@@ -5,9 +5,21 @@ import {
   ICognitoUserAttributeData,
 } from 'amazon-cognito-identity-js';
 
-const userPoolId = process.env.REACT_APP_COGNITO_USER_POOL_ID;
-const clientId = process.env.REACT_APP_COGNITO_CLIENT_ID;
-export const awsRegion = process.env.REACT_APP_AWS_REGION;
+// Define a type for our global config for type safety
+declare global {
+  interface Window {
+    APP_CONFIG: {
+      aws_region: string;
+      cognito_user_pool_id: string;
+      cognito_client_id: string;
+    };
+  }
+}
+
+// Fallback to process.env for development, but prioritize window.APP_CONFIG
+export const awsRegion = window.APP_CONFIG?.aws_region || process.env.REACT_APP_AWS_REGION;
+const userPoolId = window.APP_CONFIG?.cognito_user_pool_id || process.env.REACT_APP_COGNITO_USER_POOL_ID;
+const clientId = window.APP_CONFIG?.cognito_client_id || process.env.REACT_APP_COGNITO_CLIENT_ID;
 
 if (!userPoolId || !clientId || !awsRegion) {
   throw new Error("REACT_APP_COGNITO_USER_POOL_ID, REACT_APP_COGNITO_CLIENT_ID, and REACT_APP_AWS_REGION must be set in your .env file.");

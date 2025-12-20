@@ -1,18 +1,5 @@
 package com.krabi;
 
-import com.auth0.jwk.JwkProvider;
-import com.auth0.jwk.JwkProviderBuilder;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.DecodedJWT;
-import com.auth0.jwt.interfaces.JWTVerifier;
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
-import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
-
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.security.interfaces.RSAPublicKey;
@@ -21,7 +8,24 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.auth0.jwk.JwkProvider;
+import com.auth0.jwk.JwkProviderBuilder;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import com.auth0.jwt.interfaces.JWTVerifier;
+
+import io.vertx.core.Future;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
+import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AuthFlowType;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.InitiateAuthRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.InitiateAuthResponse;
+
 public class CognitoAuthService {
+
     private static final Logger logger = LoggerFactory.getLogger(CognitoAuthService.class);
     private final String userPoolId;
     private final String clientId;
@@ -29,7 +33,7 @@ public class CognitoAuthService {
     private final CognitoIdentityProviderClient cognitoClient;
     private final Vertx vertx;
     private JwkProvider jwkProvider;
-    private Map<Algorithm, JWTVerifier> algorithmMap = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<Algorithm, JWTVerifier> algorithmMap = new java.util.concurrent.ConcurrentHashMap<>();
 
     public CognitoAuthService(Vertx vertx, String userPoolId, String clientId, String region) {
         this.vertx = vertx;

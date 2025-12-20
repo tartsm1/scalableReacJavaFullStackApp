@@ -100,34 +100,27 @@ After creating the User Pool, you'll need these values:
 
 ## Step 3: Update Your Application Configuration
 
-1. **Update `src/aws-config.ts`**:
-   ```typescript
-   import { Amplify } from 'aws-amplify';
+1. **Update `env_dev` and `app-config.js` for production **:
+   ```json
+   window.APP_CONFIG = {
+      "aws_region": "eu-north-1",
+      "cognito_user_pool_id": "eu-north-1_your pool",
+      "cognito_client_id": "cognito client id"
+      };
+     ```
 
-   const awsConfig = {
-     Auth: {
-       region: 'us-east-1', // Replace with your AWS region
-       userPoolId: 'us-east-1_XXXXXXXXX', // Replace with your User Pool ID
-       userPoolWebClientId: 'XXXXXXXXXXXXXXXXXXXXXXXXXX', // Replace with your App Client ID
-       mandatorySignIn: true,
-       cookieStorage: {
-         domain: 'localhost',
-         path: '/',
-         expires: 365,
-         secure: true
-       }
-     }
-   };
+2. **Replace the placeholder values in `env_dev` with your actual values**:
+ REACT_APP_AWS_REGION=eu-north-1
 
-   Amplify.configure(awsConfig);
-   export default awsConfig;
-   ```
+# AWS Cognito User Pool ID (format: region_poolid)
+# Found in AWS Console > Cognito > User Pools > Your Pool > General Settings
+REACT_APP_COGNITO_USER_POOL_ID=eu-north-1_XXXX
 
-2. **Replace the placeholder values**:
-   - `region`: Your AWS region (e.g., 'us-east-1', 'eu-west-1')
-   - `userPoolId`: Your User Pool ID (e.g., 'us-east-1_AbCdEfGhI')
-   - `userPoolWebClientId`: Your App Client ID (e.g., '1234567890abcdefghijklmnop')
+# AWS Cognito App Client ID
+# Found in AWS Console > Cognito > User Pools > Your Pool > App Integration > App Clients
+REACT_APP_COGNITO_CLIENT_ID=XXXXXX
 
+#
 ## Step 4: Test Your Setup
 
 1. **Start your development server**:

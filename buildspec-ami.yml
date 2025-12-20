@@ -1,0 +1,45 @@
+version: "0.2"
+
+env:
+  shell: bash
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto21
+      nodejs: 22
+    commands:
+      # - sudo yum install java-21-amazon-corretto-devel # No longer needed, handled by runtime-versions
+      - wget https://services.gradle.org/distributions/gradle-9.2.0-bin.zip
+      - sudo unzip -d /opt/gradle gradle-9.2.0-bin.zip
+      - echo "export GRADLE_HOME=/opt/gradle/gradle-9.2.0" > gradle.sh
+      - echo "export PATH=/opt/gradle/gradle-9.2.0/bin:${PATH}" >> gradle.sh
+      - sudo mv gradle.sh /etc/profile.d/
+      - sudo chmod +x /etc/profile.d/gradle.sh
+      - source /etc/profile.d/gradle.sh
+      - echo "Verifying Node.js and npm versions"
+      - node -v
+      - npm -v
+
+  build:
+    commands:
+      - cd java_timetracking
+      - gradle build shadowJar
+      - cd ..
+      - cd react_timetracking
+      - npm install
+      - npm run build
+      - cd build
+      - zip -r react-timetracking.zip *
+
+artifacts:
+  files:
+    - java_timetracking/build/libs/java_timetracking-1.0.0.jar
+    - react_timetracking/build/react-timetracking.zip
+    - react_timetracking/build/app-config.js
+  discard-paths: "yes"
+
+cache:
+  paths:
+  
+    

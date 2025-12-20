@@ -1,12 +1,190 @@
-# Full-stack demo Time Tracking application is built for performance and scale. It features a dynamic React frontend and a robust, stateless Java backend. Authentication with JWT tokens.
+# Full-Stack Time Tracking Application - Production-Ready & Cloud-Native
 
-Authentication is managed by AWS Cognito, which handles secure, email-based user registration and authorization using JWT tokens. For the database, DynamoDB was chosen for its massive scalability and low-latency performance.
+A modern, scalable time tracking application built for performance and enterprise-grade deployment. Features a dynamic **React TypeScript frontend** and a robust, **stateless Java Vert.x backend** with comprehensive testing and containerization.
 
-The entire architecture is stateless, a key design choice that allows the application to scale horizontally without limits. In a production environment, this enables it to work seamlessly behind a load balancer, such as AWS ALB, to ensure high availability and performance under heavy load. Java Vert.x framework for small memory footprint and fast performance. 
+## 🚀 Key Features
 
-# VScode launch configuration included to start both frontend and backend
-- reacJavaFullStackApp/.vscode/launch.json
-- Caddyfile included to simulate prod environment
+- **Stateless Architecture**: Horizontally scalable design enabling unlimited scaling behind load balancers (AWS ALB)
+- **Cloud-Native**: Fully containerized with Docker, ready for Kubernetes/EKS deployment
+- **CI/CD Pipeline**: AWS CodeBuild integration with automated Docker image builds and ECR deployment
+- **Secure Authentication**: AWS Cognito with JWT token-based authentication and role-based access control
+- **High-Performance Database**: AWS DynamoDB for massive scalability and low-latency operations
+- **Comprehensive Testing**: 17 Java unit tests (JUnit 5 + Mockito) with 100% pass rate
+- **Modern Stack**: Java 21 with Vert.x 4.5, React 18 with TypeScript, Material-UI
+- **Small Footprint**: Java Vert.x framework optimized for minimal memory usage and fast performance
+
+## 🏗️ Architecture Overview
+
+The application follows a modern microservices architecture with complete separation of concerns:
+
+- **Frontend**: React 18 + TypeScript + Material-UI, served via Nginx in production
+- **Backend**: Java 21 + Vert.x (non-blocking, event-driven), packaged as executable JAR
+- **Authentication**: AWS Cognito User Pools with JWT validation
+- **Database**: AWS DynamoDB with SDK v2
+- **Containerization**: Multi-stage Docker builds for optimized image sizes
+- **Deployment**: AWS EKS with Pod Identity for secure credential management
+
+## ⚡ Quick Start
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd scalableReacJavaFullStackApp
+
+# Start local DynamoDB
+docker run -d -p 8000:8000 amazon/dynamodb-local
+
+# Create Tasks table
+cd react_timetracking && node createTasksTable.js && cd ..
+
+# Configure environment (edit env_dev with your AWS Cognito details)
+# Then use VSCode "Run and Debug" or:
+
+# Terminal 1: Start Java backend
+cd java_timetracking
+./gradlew run
+
+# Terminal 2: Start React frontend
+cd react_timetracking
+npm install
+npm start
+
+# Access the application at http://localhost:3000
+```
+
+## 📋 Table of Contents
+
+- [Development Setup](#️-development-setup)
+- [Docker & Containerization](#-docker--containerization)
+- [CI/CD Pipeline](#-cicd-pipeline)
+- [Kubernetes Deployment](#️-kubernetes-deployment)
+- [Testing](#-testing)
+- [React Frontend](#react-time-tracking-app)
+- [Java Backend](#java-vertex-server-with-dynamodb-and-aws-cognito-authentication)
+- [Local DynamoDB Setup](#local-dynamodb-setup-for-development)
+ 
+
+## 🛠️ Development Setup
+
+### VSCode Launch Configuration
+- `.vscode/launch.json` - Pre-configured to start both frontend and backend
+- `Caddyfile` - Included to simulate production environment locally
+- `env_dev` - Development environment variables
+
+## 🐳 Docker & Containerization
+
+### Multi-Stage Docker Builds
+
+Both applications use optimized multi-stage Docker builds:
+
+**Java Backend**:
+- Build stage: Gradle with JDK 21
+- Runtime stage: Amazon Corretto 21 (minimal JRE)
+- Final image: ~200MB with executable JAR
+
+**React Frontend**:
+- Build stage: Node.js 22 for npm build
+- Runtime stage: Nginx Alpine (minimal web server)
+- Final image: ~50MB with static assets
+
+### Building Docker Images
+
+```bash
+# Build Java backend
+cd java_timetracking
+docker build -t java_timetracking:latest .
+
+# Build React frontend
+cd react_timetracking
+docker build -t react_timetracking:latest .
+```
+
+### Running with Docker
+
+```bash
+# Run Java backend (development with local DynamoDB)
+docker run -p 8888:8888 \
+  -e DYNAMODB_ENDPOINT=http://host.docker.internal:8000 \
+  -e AWS_ACCESS_KEY_ID=fake \
+  -e AWS_SECRET_ACCESS_KEY=fake \
+  java_timetracking
+
+# Run React frontend
+docker run -p 80:80 react_timetracking
+```
+
+## 🔄 CI/CD Pipeline
+
+### AWS CodeBuild Integration
+
+The project includes `buildspec.yml` for automated builds:
+
+1. **Pre-build**: ECR login and commit hash tagging
+2. **Build**: Docker image creation for both applications
+3. **Post-build**: Push to ECR with `latest` and commit hash tags
+4. **Artifacts**: Generate `imagedefinitions.json` for deployment
+
+```yaml
+# Automated workflow:
+Git Push → CodeBuild → Docker Build → ECR Push → EKS Deployment
+```
+
+### Image Tagging Strategy
+- `latest`: Always points to the most recent build
+- `<commit-hash>`: Specific version for rollback capability
+
+## ☸️ Kubernetes Deployment
+
+### AWS EKS Architecture
+
+- **Namespace**: `development` (configurable)
+- **Pod Identity**: Secure AWS credential injection without static keys
+- **Ingress**: AWS ALB Controller with Cognito authentication
+- **Auto-scaling**: Horizontal Pod Autoscaler (HPA) configured
+- **Service Mesh**: Internal service-to-service communication
+
+### Key Resources
+- Service Accounts with IAM role associations
+- ConfigMaps for environment configuration
+- Secrets for sensitive data
+- HPA for automatic scaling based on CPU/memory
+
+## 🧪 Testing
+
+### Java Backend Tests
+
+**Test Coverage**: 17 unit tests, 100% pass rate
+
+```bash
+cd java_timetracking
+./gradlew test
+```
+
+**Test Suites**:
+1. **AuthMiddlewareTest** (8 tests)
+   - Token validation and authentication flows
+   - Role-based access control
+   - Development mode authentication bypass
+
+2. **TaskServiceTest** (6 tests)
+   - CRUD operations with DynamoDB
+   - Task retrieval and listing
+   - Error handling for missing items
+
+3. **TaskTest** (3 tests)
+   - Model validation
+   - Constructor and getter/setter tests
+
+**Technologies**: JUnit 5, Mockito, Vert.x JUnit 5 integration
+
+### React Frontend Tests
+
+```bash
+cd react_timetracking
+npm test
+```
+
+**Test Framework**: Jest + React Testing Library
 
 # React Time Tracking App
 
@@ -58,11 +236,8 @@ This app uses AWS Cognito for user authentication, providing:
    - Get your User Pool ID and App Client ID
 
 4. **Configure environment variables**:
-   ```bash
-   cp env.example .env
-   ```
    
-   Edit `.env` and add your AWS Cognito configuration:
+   Edit `env_dev` or `react_timetracking/.env` and add your AWS Cognito configuration:
    ```env
    REACT_APP_AWS_REGION=us-east-1
    REACT_APP_COGNITO_USER_POOL_ID=your-user-pool-id
@@ -70,6 +245,8 @@ This app uses AWS Cognito for user authentication, providing:
    ```
 
 5. **Start the development server**:
+   - In VSCode use "Run and Debug".  `.vscode/launch.json` -> `env_dev`. 
+   - Command line loads environment variables from `react_timetracking/.env` file. 
    ```bash
    npm start
    ```
@@ -105,20 +282,13 @@ This app uses AWS Cognito for user authentication, providing:
 ## Project Structure
 
 ```
-src/
-├── components/          # React components
-│   ├── AuthWrapper.tsx # Authentication wrapper
-│   ├── Login.tsx       # Login form
-│   ├── SignUp.tsx      # Registration form
-│   ├── ConfirmSignUp.tsx # Email verification
-│   ├── ForgotPassword.tsx # Password reset
-│   └── ConfirmForgotPassword.tsx # Password reset confirmation
-├── contexts/           # React contexts
-│   └── AuthContext.tsx # Authentication context
-├── api.ts             # API functions
-├── aws-config.ts      # AWS Amplify configuration
-├── config.ts          # App configuration
-└── App.tsx           # Main application component
+├── components/ # Reusable UI components (Login, SignUp, etc.)
+├── contexts/ # React contexts (e.g., AuthContext)
+├── services/ # External service integrations
+│ ├── api.ts # Functions for calling the backend API
+│ └── cognito.ts # Cognito/Amplify configuration and services
+├── App.tsx # Main application component
+└── index.tsx # Application entry point
 ```
 
 ## Configuration
@@ -162,7 +332,7 @@ npm run build
 
 For production deployment:
 
-1. Update the domain in `src/aws-config.ts`
+1. Update the `react_timetracking/public/app-config.js`
 2. Configure CORS settings in AWS Cognito
 3. Set up proper environment variables
 4. Use HTTPS in production
@@ -220,13 +390,13 @@ This is a Java Vert.x server application that provides a REST API for task manag
 
 ## Prerequisites
 
-- Java 17 or higher
+- Java 21 or higher
 - AWS account with DynamoDB and Cognito User Pools configured
 - AWS credentials configured (via AWS CLI, environment variables, or IAM roles)
 
 ## Configuration
 
-The application uses the following environment variables for AWS Cognito configuration:
+The application uses the following environment variables from  `env_dev` for AWS Cognito configuration:
 
 - `COGNITO_USER_POOL_ID`: Your AWS Cognito User Pool ID
 - `COGNITO_CLIENT_ID`: Your AWS Cognito App Client ID
@@ -336,10 +506,29 @@ All API endpoints are prefixed with `/api`.
 ./gradlew test
 ```
 
+**Test Results**: 17 tests across 3 test suites
+- ✅ AuthMiddlewareTest: 8 tests
+- ✅ TaskServiceTest: 6 tests  
+- ✅ TaskTest: 3 tests
+
 ### Building without Tests
 
 ```bash
 ./gradlew shadowJar -x test
+```
+
+### Docker Build
+
+```bash
+# Build Docker image
+docker build -t java_timetracking:latest .
+
+# Run with local DynamoDB
+docker run -p 8888:8888 \
+  -e DYNAMODB_ENDPOINT=http://host.docker.internal:8000 \
+  -e AWS_ACCESS_KEY_ID=fake \
+  -e AWS_SECRET_ACCESS_KEY=fake \
+  java_timetracking
 ```
 
 ## Architecture
@@ -350,6 +539,38 @@ All API endpoints are prefixed with `/api`.
 - **AuthMiddleware**: HTTP middleware for authentication and authorization
 - **DynamoDBClientProvider**: AWS DynamoDB client configuration
 
+## Technology Stack
+
+### Backend
+- **Java**: 21 (LTS)
+- **Framework**: Vert.x 4.5.22 (non-blocking, event-driven)
+- **Build Tool**: Gradle 9.0 with Shadow plugin for fat JAR
+- **AWS SDK**: 2.25.32 (DynamoDB, Cognito)
+- **Authentication**: Auth0 JWT 4.4.0 + JWKS RSA 0.22.1
+- **JSON Processing**: Jackson 2.17.1
+- **Logging**: SLF4J 2.0.13 + Logback 1.5.13
+- **Testing**: JUnit 5.10.2, Mockito 5.11.0
+
+### Frontend
+- **React**: 18.3.1
+- **TypeScript**: 4.9.5
+- **UI Framework**: Material-UI 5.15.21
+- **State Management**: React Context API
+- **Authentication**: amazon-cognito-identity-js 6.3.15
+- **AWS SDK**: @aws-sdk/client-dynamodb 3.840.0
+- **Build Tool**: react-scripts 5.0.1
+- **Testing**: Jest, React Testing Library
+
+### Infrastructure
+- **Containerization**: Docker (multi-stage builds)
+- **Container Registry**: AWS ECR
+- **Orchestration**: AWS EKS (Kubernetes)
+- **Load Balancer**: AWS ALB with Cognito integration
+- **Database**: AWS DynamoDB
+- **CI/CD**: AWS CodeBuild
+- **Authentication**: AWS Cognito User Pools
+- **IAM**: EKS Pod Identity for secure credential injection
+
 ## Dependencies
 
 - Vert.x Core and Web for HTTP server
@@ -358,10 +579,45 @@ All API endpoints are prefixed with `/api`.
 - Jackson for JSON processing
 - JUnit 5 for testing 
 
-# For development best option is to use local DynamoDB
-https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html
+# Local DynamoDB Setup for Development
 
-In DynamoDB should exist table `Tasks` with primary key named `"id"`
+For development, it's recommended to use local DynamoDB to avoid AWS costs and enable offline development.
+
+## Option 1: DynamoDB Local (Docker)
+
+```bash
+# Run DynamoDB Local in Docker
+docker run -p 8000:8000 amazon/dynamodb-local
+
+# Verify it's running
+curl http://localhost:8000
+```
+
+## Option 2: Download DynamoDB Local
+
+Download from: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html
+
+## Create Tasks Table
+
+The application requires a `Tasks` table with primary key `id` (Number).
+
+```bash
+# Using AWS CLI with local endpoint
+aws dynamodb create-table \
+    --table-name Tasks \
+    --attribute-definitions AttributeName=id,AttributeType=N \
+    --key-schema AttributeName=id,KeyType=HASH \
+    --billing-mode PAY_PER_REQUEST \
+    --endpoint-url http://localhost:8000
+
+# Or use the provided script
+cd react_timetracking
+node createTasksTable.js
+```
+
+## Environment Configuration
+
+Set `DYNAMODB_ENDPOINT=http://localhost:8000` in your environment to use local DynamoDB.
 
 ## Contributing
 
