@@ -6,14 +6,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 import io.vertx.core.json.Json;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 
 public class MainVerticle extends AbstractVerticle {
+
     private static final Logger logger = LoggerFactory.getLogger(MainVerticle.class);
     private static final String COGNITO_USER_POOL_ID = "COGNITO_USER_POOL_ID";
     private static final String COGNITO_CLIENT_ID = "COGNITO_CLIENT_ID";
@@ -25,11 +28,27 @@ public class MainVerticle extends AbstractVerticle {
     private static final String HTTP_SERVER_STARTED_ON_PORT = "HTTP server started on port ";
     private static final String HTTP_SERVER_FAILED_TO_START = "HTTP server failed to start";
     private static final String USER = "user";
+    private static final String THREADS_COUNT = "threadsCount";
     boolean isDev = false;
 
     public static void main(String[] args) {
-        Vertx vertx = Vertx.vertx();
-        vertx.deployVerticle(new MainVerticle());
+
+        String threadsCount = System.getenv(THREADS_COUNT);
+        int threads = (threadsCount != null) ? Integer.parseInt(threadsCount) : 1;
+
+        // Configure Vert.x with configured event loop threads
+        VertxOptions options = new VertxOptions().setEventLoopPoolSize(threads);
+        Vertx vertx = Vertx.vertx(options);
+
+        // Deploy configured instances of the verticle
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setInstances(threads);
+        vertx.deployVerticle(MainVerticle.class.getName(), deploymentOptions, res -> {
+            if (res.succeeded()) {
+                logger.info("Deployed {} instances of MainVerticle with deployment ID: {}", String.valueOf(threads), res.result());
+            } else {
+                logger.error("Failed to deploy MainVerticle", res.cause());
+            }
+        });
     }
 
     @Override
