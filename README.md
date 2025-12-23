@@ -239,7 +239,7 @@ This app uses AWS Cognito for user authentication, providing:
    
    Edit `env_dev` or `react_timetracking/.env` and add your AWS Cognito configuration:
    ```env
-   REACT_APP_AWS_REGION=us-east-1
+   REACT_APP_AWS_REGION=eu-north-1
    REACT_APP_COGNITO_USER_POOL_ID=your-user-pool-id
    REACT_APP_COGNITO_CLIENT_ID=your-app-client-id
    ```
@@ -297,7 +297,7 @@ This app uses AWS Cognito for user authentication, providing:
 
 The app uses the following environment variables:
 
-- `REACT_APP_AWS_REGION`: AWS region (e.g., us-east-1)
+- `REACT_APP_AWS_REGION`: AWS region (e.g., eu-north-1)
 - `REACT_APP_COGNITO_USER_POOL_ID`: Cognito User Pool ID
 - `REACT_APP_COGNITO_CLIENT_ID`: Cognito App Client ID
 
@@ -400,7 +400,7 @@ The application uses the following environment variables from  `env_dev` for AWS
 
 - `COGNITO_USER_POOL_ID`: Your AWS Cognito User Pool ID
 - `COGNITO_CLIENT_ID`: Your AWS Cognito App Client ID
-- `AWS_REGION`: AWS region (e.g., us-east-1)
+- `AWS_REGION`: AWS region (e.g., eu-north-1)
 
 - `DYNAMODB_ENDPOINT=http://localhost:8000` DynamoDB endpoint for dev env
 - `dev=true` Disables auhtentification for development in backend
@@ -433,10 +433,10 @@ NB: in EC2 instance DYNAMODB_ENDPOINT not needed. Instance should have IAM role 
 ```bash
 export COGNITO_USER_POOL_ID="your-user-pool-id"
 export COGNITO_CLIENT_ID="your-client-id"
-export AWS_REGION="us-east-1"
+export AWS_REGION="eu-north-1"
 export DYNAMODB_ENDPOINT=http://localhost:8000
 export port=80
-export host=$(hostname -I)
+export host=127.0.0.1
 
 java -jar build/libs/java_timetracking-1.0.0.jar
 ```
@@ -626,6 +626,9 @@ Set `DYNAMODB_ENDPOINT=http://localhost:8000` in your environment to use local D
 3. Make your changes
 4. Add tests if applicable
 5. Submit a pull request
+
+## Contacts
+My Slack: [friendly-solutions](https://join.slack.com/t/friendlysolutionsco/shared_invite/zt-3gqtsiax0-m7uCPEfzprlPWYntp4lcXg) 
 
 ## License
 MIT License

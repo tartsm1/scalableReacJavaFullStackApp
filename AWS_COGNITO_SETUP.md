@@ -139,20 +139,10 @@ REACT_APP_COGNITO_CLIENT_ID=XXXXXX
 
 For production deployment:
 
-1. **Update the domain in `aws-config.ts`**:
-   ```typescript
-   cookieStorage: {
-     domain: 'yourdomain.com', // Replace with your actual domain
-     path: '/',
-     expires: 365,
-     secure: true
-   }
-   ```
-
-2. **Configure CORS** (if needed):
+1. **Configure CORS** (if needed):
    - In your User Pool settings, add your domain to the allowed origins
 
-3. **Set up custom domain** (optional):
+2. **Set up custom domain** (optional):
    - Configure a custom domain for your Cognito hosted UI
    - Update the configuration accordingly
 
@@ -175,22 +165,6 @@ For production deployment:
 4. **CORS errors**:
    - Add your domain to the allowed origins in Cognito settings
    - Check that your API endpoints are properly configured
-
-### Debug Mode:
-
-To enable debug logging, add this to your `aws-config.ts`:
-
-```typescript
-const awsConfig = {
-  Auth: {
-    // ... your existing config
-  },
-  // Add this for debugging
-  Logging: {
-    level: 'DEBUG'
-  }
-};
-```
 
 ## Security Best Practices
 
