@@ -42,13 +42,13 @@ public class MainVerticle extends AbstractVerticle {
 
         // Deploy configured instances of the verticle
         DeploymentOptions deploymentOptions = new DeploymentOptions().setInstances(threads);
-        vertx.deployVerticle(MainVerticle.class.getName(), deploymentOptions, res -> {
-            if (res.succeeded()) {
-                logger.info("Deployed {} instances of MainVerticle with deployment ID: {}", String.valueOf(threads), res.result());
-            } else {
-                logger.error("Failed to deploy MainVerticle", res.cause());
-            }
-        });
+        vertx.deployVerticle(MainVerticle.class.getName(), deploymentOptions)
+                .onSuccess(deploymentId
+                        -> logger.info("Deployed {} instances of MainVerticle with deployment ID: {}", String.valueOf(threads), deploymentId)
+                )
+                .onFailure(cause
+                        -> logger.error("Failed to deploy MainVerticle", cause)
+                );
     }
 
     @Override
@@ -139,14 +139,14 @@ public class MainVerticle extends AbstractVerticle {
 
         vertx.createHttpServer()
                 .requestHandler(router)
-                .listen(Integer.parseInt(port), host, http -> {
-                    if (http.succeeded()) {
-                        startPromise.complete();
-                        logger.info(HTTP_SERVER_STARTED_ON_PORT + "{}", port);
-                    } else {
-                        logger.error(HTTP_SERVER_FAILED_TO_START, http.cause());
-                        startPromise.fail(http.cause());
-                    }
+                .listen(Integer.parseInt(port), host)
+                .onSuccess(http -> {
+                    startPromise.complete();
+                    logger.info(HTTP_SERVER_STARTED_ON_PORT + "{}", port);
+                })
+                .onFailure(cause -> {
+                    logger.error(HTTP_SERVER_FAILED_TO_START, cause);
+                    startPromise.fail(cause);
                 });
     }
 

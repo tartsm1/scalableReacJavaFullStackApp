@@ -9,8 +9,8 @@ repositories {
 }
 
 ext {
-    vertxVersion = '4.5.22'
-    awsSdkVersion = '2.25.32'
+    vertxVersion = '5.0.6'
+    awsSdkVersion = '2.40.15'
 }
 
 dependencies {
@@ -23,7 +23,7 @@ dependencies {
     implementation 'com.auth0:java-jwt:4.4.0'
     implementation 'com.auth0:jwks-rsa:0.22.1'
     implementation 'org.slf4j:slf4j-api:2.0.13'
-    runtimeOnly 'ch.qos.logback:logback-classic:1.5.13'
+    runtimeOnly 'ch.qos.logback:logback-classic:1.5.19'
     testImplementation "io.vertx:vertx-junit5:$vertxVersion"
     testImplementation "io.vertx:vertx-web-client:$vertxVersion"
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'

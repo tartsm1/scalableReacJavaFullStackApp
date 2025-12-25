@@ -5,7 +5,7 @@ COPY . .
 RUN gradle build shadowJar -x test --no-daemon
 
 # Run Stage
-FROM amazoncorretto:21
+FROM amazoncorretto:25
 WORKDIR /app
 COPY --from=builder /app/build/libs/java_timetracking-1.0.0.jar app.jar
 # AWS Region (e.g., us-east-1, eu-west-1, ap-southeast-1)
