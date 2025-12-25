@@ -78,7 +78,7 @@ npm start
 Both applications use optimized multi-stage Docker builds:
 
 **Java Backend**:
-- Build stage: Gradle with JDK 21
+- Build stage: Gradle with JDK 25
 - Runtime stage: Amazon Corretto 25 (minimal JRE)
 - Final image: ~200MB with executable JAR
 
@@ -542,13 +542,13 @@ docker run -p 8888:8888 \
 ## Technology Stack
 
 ### Backend
-- **Java**: 21 (LTS)
-- **Framework**: Vert.x 5.0.22 (non-blocking, event-driven)
+- **Java**: 25 (LTS)
+- **Framework**: Vert.x 5.0 (non-blocking, event-driven)
 - **Build Tool**: Gradle 9.0 with Shadow plugin for fat JAR
-- **AWS SDK**: 2.25.32 (DynamoDB, Cognito)
+- **AWS SDK**: 2.40 (DynamoDB, Cognito)
 - **Authentication**: Auth0 JWT 4.4.0 + JWKS RSA 0.22.1
 - **JSON Processing**: Jackson 2.17.1
-- **Logging**: SLF4J 2.0.13 + Logback 1.5.13
+- **Logging**: SLF4J 2.0.13 + Logback 1.5.19
 - **Testing**: JUnit 5.10.2, Mockito 5.11.0
 
 ### Frontend
