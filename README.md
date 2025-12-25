@@ -10,7 +10,7 @@ A modern, scalable time tracking application built for performance and enterpris
 - **Secure Authentication**: AWS Cognito with JWT token-based authentication and role-based access control
 - **High-Performance Database**: AWS DynamoDB for massive scalability and low-latency operations
 - **Comprehensive Testing**: 17 Java unit tests (JUnit 5 + Mockito) with 100% pass rate
-- **Modern Stack**: Java 21 with Vert.x 4.5, React 18 with TypeScript, Material-UI
+- **Modern Stack**: Java 25 with Vert.x 5.0, React 18 with TypeScript, Material-UI
 - **Small Footprint**: Java Vert.x framework optimized for minimal memory usage and fast performance
 
 ## 🏗️ Architecture Overview
@@ -18,7 +18,7 @@ A modern, scalable time tracking application built for performance and enterpris
 The application follows a modern microservices architecture with complete separation of concerns:
 
 - **Frontend**: React 18 + TypeScript + Material-UI, served via Nginx in production
-- **Backend**: Java 21 + Vert.x (non-blocking, event-driven), packaged as executable JAR
+- **Backend**: Java 25 + Vert.x (non-blocking, event-driven), packaged as executable JAR
 - **Authentication**: AWS Cognito User Pools with JWT validation
 - **Database**: AWS DynamoDB with SDK v2
 - **Containerization**: Multi-stage Docker builds for optimized image sizes
@@ -79,7 +79,7 @@ Both applications use optimized multi-stage Docker builds:
 
 **Java Backend**:
 - Build stage: Gradle with JDK 21
-- Runtime stage: Amazon Corretto 21 (minimal JRE)
+- Runtime stage: Amazon Corretto 25 (minimal JRE)
 - Final image: ~200MB with executable JAR
 
 **React Frontend**:
@@ -390,7 +390,7 @@ This is a Java Vert.x server application that provides a REST API for task manag
 
 ## Prerequisites
 
-- Java 21 or higher
+- Java 25 or higher
 - AWS account with DynamoDB and Cognito User Pools configured
 - AWS credentials configured (via AWS CLI, environment variables, or IAM roles)
 
@@ -543,7 +543,7 @@ docker run -p 8888:8888 \
 
 ### Backend
 - **Java**: 21 (LTS)
-- **Framework**: Vert.x 4.5.22 (non-blocking, event-driven)
+- **Framework**: Vert.x 5.0.22 (non-blocking, event-driven)
 - **Build Tool**: Gradle 9.0 with Shadow plugin for fat JAR
 - **AWS SDK**: 2.25.32 (DynamoDB, Cognito)
 - **Authentication**: Auth0 JWT 4.4.0 + JWKS RSA 0.22.1

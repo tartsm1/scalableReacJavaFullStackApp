@@ -1,5 +1,5 @@
 # Build Stage
-FROM gradle:jdk21 AS builder
+FROM gradle:jdk25 AS builder
 WORKDIR /app
 COPY . .
 RUN gradle build shadowJar -x test --no-daemon

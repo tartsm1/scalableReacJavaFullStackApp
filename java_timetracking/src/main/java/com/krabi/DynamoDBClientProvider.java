@@ -1,14 +1,16 @@
 package com.krabi;
 
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import java.net.URI;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+
 public class DynamoDBClientProvider {
+
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBClientProvider.class);
 
     private static DynamoDbClient client;
@@ -28,10 +30,10 @@ public class DynamoDBClientProvider {
                 // Local/dev: use dummy credentials
                 builder = builder
                         .endpointOverride(URI.create(endpoint))
-                        .credentialsProvider(DefaultCredentialsProvider.create());
+                        .credentialsProvider(DefaultCredentialsProvider.builder().build());
             } else {
                 // AWS: use default provider chain (supports EC2 IAM roles)
-                builder = builder.credentialsProvider(DefaultCredentialsProvider.create());
+                builder = builder.credentialsProvider(DefaultCredentialsProvider.builder().build());
             }
             client = builder.build();
         }
