@@ -1,14 +1,23 @@
 package com.krabi;
 
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.model.*;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 
 public class TaskService {
+
     private final DynamoDbClient dynamoDbClient;
     private final String tableName = "Tasks";
     private static final Logger logger = LoggerFactory.getLogger(TaskService.class);
@@ -42,8 +51,9 @@ public class TaskService {
         key.put("id", AttributeValue.builder().n(Long.toString(id)).build());
         GetItemRequest request = GetItemRequest.builder().tableName(tableName).key(key).build();
         Map<String, AttributeValue> item = dynamoDbClient.getItem(request).item();
-        if (item == null || item.isEmpty())
+        if (item == null || item.isEmpty()) {
             return null;
+        }
         return fromItem(item);
     }
 
@@ -102,5 +112,6 @@ public class TaskService {
         logger.error("Request ID: {}", e.requestId());
         logger.error("Status Code: {}", e.statusCode());
         logger.error("------------------------------------");
+        throw new RuntimeException(e.awsErrorDetails().errorMessage());
     }
 }
