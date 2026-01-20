@@ -16,13 +16,13 @@ declare global {
   }
 }
 
-// Fallback to process.env for development, but prioritize window.APP_CONFIG
-export const awsRegion = window.APP_CONFIG?.aws_region || process.env.REACT_APP_AWS_REGION;
-const userPoolId = window.APP_CONFIG?.cognito_user_pool_id || process.env.REACT_APP_COGNITO_USER_POOL_ID;
-const clientId = window.APP_CONFIG?.cognito_client_id || process.env.REACT_APP_COGNITO_CLIENT_ID;
+// Fallback to import.meta.env for development, but prioritize window.APP_CONFIG
+export const awsRegion = window.APP_CONFIG?.aws_region || import.meta.env.VITE_AWS_REGION;
+const userPoolId = window.APP_CONFIG?.cognito_user_pool_id || import.meta.env.VITE_COGNITO_USER_POOL_ID;
+const clientId = window.APP_CONFIG?.cognito_client_id || import.meta.env.VITE_COGNITO_CLIENT_ID;
 
 if (!userPoolId || !clientId || !awsRegion) {
-  throw new Error("REACT_APP_COGNITO_USER_POOL_ID, REACT_APP_COGNITO_CLIENT_ID, and REACT_APP_AWS_REGION must be set in your .env file.");
+  throw new Error("VITE_COGNITO_USER_POOL_ID, VITE_COGNITO_CLIENT_ID, and VITE_AWS_REGION must be set in your .env file.");
 }
 
 const poolData = {

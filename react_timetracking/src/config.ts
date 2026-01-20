@@ -7,8 +7,8 @@ export const config = {
 };
 
 // Environment check
-export const isDevelopment = process.env.NODE_ENV === 'development';
-export const isProduction = process.env.NODE_ENV === 'production';
+export const isDevelopment = import.meta.env.MODE === 'development';
+export const isProduction = import.meta.env.MODE === 'production';
 
 // Validation function
 export const validateConfig = () => {

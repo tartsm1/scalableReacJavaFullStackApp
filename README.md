@@ -17,7 +17,7 @@ A modern, scalable time tracking application built for performance and enterpris
 
 The application follows a modern microservices architecture with complete separation of concerns:
 
-- **Frontend**: React 18 + TypeScript + Material-UI, served via Nginx in production
+- **Frontend**: React 18 + TypeScript + Material-UI + **Vite**, served via Nginx in production
 - **Backend**: Java 25 + Vert.x (non-blocking, event-driven), packaged as executable JAR
 - **Authentication**: AWS Cognito User Pools with JWT validation
 - **Database**: AWS DynamoDB with SDK v2
@@ -47,7 +47,7 @@ cd java_timetracking
 # Terminal 2: Start React frontend
 cd react_timetracking
 npm install
-npm start
+npm run dev
 
 # Access the application at http://localhost:3000
 ```
@@ -239,16 +239,18 @@ This app uses AWS Cognito for user authentication, providing:
    
    Edit `env_dev` or `react_timetracking/.env` and add your AWS Cognito configuration:
    ```env
-   REACT_APP_AWS_REGION=eu-north-1
-   REACT_APP_COGNITO_USER_POOL_ID=your-user-pool-id
-   REACT_APP_COGNITO_CLIENT_ID=your-app-client-id
+   VITE_AWS_REGION=eu-north-1
+   VITE_COGNITO_USER_POOL_ID=your-user-pool-id
+   VITE_COGNITO_CLIENT_ID=your-app-client-id
    ```
+   
+   > **Note**: Environment variables use `VITE_` prefix (the app was migrated from Create React App to Vite).
 
 5. **Start the development server**:
    - In VSCode use "Run and Debug".  `.vscode/launch.json` -> `env_dev`. 
    - Command line loads environment variables from `react_timetracking/.env` file. 
    ```bash
-   npm start
+   npm run dev
    ```
 
 6. **Open your browser**:
@@ -295,11 +297,11 @@ This app uses AWS Cognito for user authentication, providing:
 
 ### Environment Variables
 
-The app uses the following environment variables:
+The app uses the following environment variables (with `VITE_` prefix for Vite bundler):
 
-- `REACT_APP_AWS_REGION`: AWS region (e.g., eu-north-1)
-- `REACT_APP_COGNITO_USER_POOL_ID`: Cognito User Pool ID
-- `REACT_APP_COGNITO_CLIENT_ID`: Cognito App Client ID
+- `VITE_AWS_REGION`: AWS region (e.g., eu-north-1)
+- `VITE_COGNITO_USER_POOL_ID`: Cognito User Pool ID
+- `VITE_COGNITO_CLIENT_ID`: Cognito App Client ID
 
 ### AWS Cognito Setup
 
@@ -309,10 +311,10 @@ For detailed instructions on setting up AWS Cognito, see [AWS_COGNITO_SETUP.md](
 
 ### Available Scripts
 
-- `npm start`: Start development server
-- `npm build`: Build for production
-- `npm test`: Run tests
-- `npm eject`: Eject from Create React App
+- `npm run dev`: Start Vite development server (fast HMR)
+- `npm run build`: Build for production
+- `npm run preview`: Preview production build locally
+- `npm test`: Run tests with Vitest
 
 ### Adding Features
 
@@ -558,8 +560,8 @@ docker run -p 8888:8888 \
 - **State Management**: React Context API
 - **Authentication**: amazon-cognito-identity-js 6.3.15
 - **AWS SDK**: @aws-sdk/client-dynamodb 3.840.0
-- **Build Tool**: react-scripts 5.0.1
-- **Testing**: Jest, React Testing Library
+- **Build Tool**: Vite 7.3.1 (migrated from Create React App)
+- **Testing**: Vitest, React Testing Library
 
 ### Infrastructure
 - **Containerization**: Docker (multi-stage builds)

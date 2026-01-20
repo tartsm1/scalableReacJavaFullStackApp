@@ -16,10 +16,11 @@
             "type": "node",
             "name": "React App",
             "request": "launch",
-             "envFile": "${workspaceFolder}/env_dev", 
+            "envFile": "${workspaceFolder}/env_dev",
             "runtimeExecutable": "npm",
             "runtimeArgs": [
-                "start"
+                "run",
+                "dev"
             ],
             "cwd": "${workspaceFolder}/react_timetracking",
             "console": "integratedTerminal"

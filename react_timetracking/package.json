@@ -2,7 +2,7 @@
   "name": "react_timetracking",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:8888",
+  "type": "module",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.840.0",
     "@aws-sdk/lib-dynamodb": "^3.840.0",
@@ -13,49 +13,31 @@
     "ajv": "^8.17.1",
     "ajv-keywords": "^5.1.0",
     "amazon-cognito-identity-js": "^6.3.15",
-    "cra-template-pwa-typescript": "2.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-scripts": "5.0.1",
     "web-vitals": "^4.2.1"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.6",
-    "@types/jest": "^29.5.12",
-    "@types/node-fetch": "^2.6.12",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^25.0.9",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "identity-obj-proxy": "^3.0.0",
-    "node-fetch": "^3.3.2",
-    "ts-jest": "^29.1.5",
-    "typescript": "^4.9.5"
+    "@vitejs/plugin-react": "^5.1.2",
+    "jsdom": "^27.4.0",
+    "typescript": "^5.4.0",
+    "vite": "^7.3.1",
+    "vite-plugin-pwa": "^1.2.0",
+    "vitest": "^4.0.17"
   },
   "description": "A modern, responsive time tracking application built with React, TypeScript, and Material-UI. Users can track their daily work by project and task, with comprehensive reporting and analytics.",
-  "main": "package.json",
   "author": "",
   "license": "ISC"
 }

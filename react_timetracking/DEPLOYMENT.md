@@ -6,70 +6,33 @@ This guide provides instructions for deploying your React Time Tracking App to v
 
 Before deploying, ensure you have:
 
-1. **AWS Cognito Setup**: Follow the instructions in `AWS_COGNITO_SETUP.md`
-2. **Environment Variables**: Copy `env.example` to `.env` and configure your AWS settings
-3. **Production Build**: Run `npm run build` to create the production build
-
-## Quick Deployment
-
-Use the automated deployment script:
-
-```bash
-./deploy.sh
-```
-
-This script will guide you through deployment options.
+1. **Node.js 22+**: Required for building the application
+2. **AWS Cognito Setup**: Follow the instructions in `AWS_COGNITO_SETUP.md`
+3. **Production Build**: Update `app-config.js` with your AWS settings. Run `npm run build` to create the production build in the `build/` directory. For flexible deployment options, deploy scripts should overwrite `app-config.js` with the correct settings. 
+This enables possibility to change configuration without rebuilding the application.
 
 ## Deployment Options
 
 ### 1. Local Testing
 
-Test your production build locally:
+Test your production build locally using Caddy server:
 
+
+# To preview the production build start java_timetracking and run caddy in project root 
 ```bash
-# Install serve globally
-npm install -g serve
-
-# Serve the build folder
-serve -s build -l 3000
+java -jar java_timetracking/target/timetracking-0.0.1-SNAPSHOT.jar
+```
+```bash
+caddy run
 ```
 
-Visit `http://localhost:3000` to test your app.
+Visit `https://localhost` to test your app.
 
-### 2. Netlify
+### 2. Terraform + AWS EKS
 
-**Automatic Deployment:**
-1. Connect your GitHub repository to Netlify
-2. Set build command: `npm run build`
-3. Set publish directory: `build`
-4. Add environment variables in Netlify dashboard
+[Sample Terraform project](https://github.com/tartsm1/prodKubernetesTerraform)
 
-**Manual Deployment:**
-```bash
-# Install Netlify CLI
-npm install -g netlify-cli
-
-# Deploy
-netlify deploy --prod --dir=build
-```
-
-### 3. Vercel
-
-**Automatic Deployment:**
-1. Connect your GitHub repository to Vercel
-2. Vercel will automatically detect it's a Create React App
-3. Add environment variables in Vercel dashboard
-
-**Manual Deployment:**
-```bash
-# Install Vercel CLI
-npm install -g vercel
-
-# Deploy
-vercel --prod
-```
-
-### 4. AWS S3 + CloudFront
+### 3. AWS S3 + CloudFront
 
 1. **Create S3 Bucket:**
    ```bash
@@ -89,7 +52,7 @@ vercel --prod
 4. **Create CloudFront Distribution:**
    - Origin: Your S3 bucket
    - Default root object: `index.html`
-   - Error pages: Redirect to `index.html` for 404 errors
+   - Error pages: Redirect to `index.html` for 404 errors (for SPA routing)
 
 5. **Set up CI/CD (Optional):**
    ```bash
@@ -98,57 +61,53 @@ vercel --prod
    aws cloudfront create-invalidation --distribution-id YOUR_DISTRIBUTION_ID --paths "/*"
    ```
 
-### 5. GitHub Pages
+### 4. Docker
 
-1. **Install gh-pages:**
-   ```bash
-   npm install --save-dev gh-pages
-   ```
-
-2. **Add to package.json:**
-   ```json
-   {
-     "scripts": {
-       "predeploy": "npm run build",
-       "deploy": "gh-pages -d build"
-     },
-     "homepage": "https://yourusername.github.io/react_timetracking"
-   }
-   ```
-
-3. **Deploy:**
-   ```bash
-   npm run deploy
-   ```
-
-### 6. Docker
+The project includes a multi-stage Dockerfile using Node 22 for building and nginx:alpine for serving.
 
 1. **Build Docker Image:**
    ```bash
-   docker build -t react-timetracking .
+   docker build -t react_timetracking .
    ```
 
 2. **Run Container:**
    ```bash
-   docker run -p 8080:80 react-timetracking
+   docker run -p 8080:80 react_timetracking
    ```
 
-3. **Deploy to Cloud:**
+   Visit `http://localhost:8080` to access the app.
+
+3. **Build with Environment Variables:**
    ```bash
-   # Example for AWS ECS
-   docker tag react-timetracking:latest your-ecr-repo:latest
-   docker push your-ecr-repo:latest
+   docker build \
+     --build-arg VITE_AWS_REGION=us-east-1 \
+     --build-arg VITE_COGNITO_USER_POOL_ID=your-pool-id \
+     --build-arg VITE_COGNITO_CLIENT_ID=your-client-id \
+     -t react_timetracking .
+   ```
+
+4. **Deploy to Cloud:**
+   ```bash
+   # Example for AWS ECR
+   aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin YOUR_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
+   docker tag react_timetracking:latest YOUR_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/react_timetracking:latest
+   docker push YOUR_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/react_timetracking:latest
    ```
 
 ## Environment Variables
 
 Set these environment variables in your deployment platform:
 
-- `REACT_APP_AWS_REGION`: Your AWS region (e.g., us-east-1)
-- `REACT_APP_COGNITO_USER_POOL_ID`: Your Cognito User Pool ID
-- `REACT_APP_COGNITO_CLIENT_ID`: Your Cognito App Client ID
-- `REACT_APP_NAME`: App name (optional)
-- `REACT_APP_VERSION`: App version (optional)
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `VITE_AWS_REGION` | Yes | Your AWS region (e.g., `us-east-1`) |
+| `VITE_COGNITO_USER_POOL_ID` | Yes | Your Cognito User Pool ID |
+| `VITE_COGNITO_CLIENT_ID` | Yes | Your Cognito App Client ID |
+| `VITE_NAME` | No | App name (default: "Time Tracking App") |
+| `VITE_VERSION` | No | App version |
+
+> [!IMPORTANT]
+> Vite environment variables must be prefixed with `VITE_` to be exposed to the client-side code. Variables are embedded at build time, not runtime.
 
 ## Post-Deployment Checklist
 
@@ -156,8 +115,9 @@ Set these environment variables in your deployment platform:
 2. **Test Core Features**: Verify task creation, editing, and reporting work
 3. **Check Mobile Responsiveness**: Test on various screen sizes
 4. **Verify HTTPS**: Ensure your deployment uses HTTPS
-5. **Monitor Performance**: Check loading times and bundle sizes
-6. **Set up Monitoring**: Configure error tracking (e.g., Sentry)
+5. **Test PWA Features**: Verify the app can be installed and works offline
+6. **Monitor Performance**: Check loading times and bundle sizes
+7. **Set up Monitoring**: Configure error tracking (e.g., Sentry)
 
 ## Troubleshooting
 
@@ -165,45 +125,52 @@ Set these environment variables in your deployment platform:
 
 1. **Authentication Errors:**
    - Verify AWS Cognito configuration
-   - Check CORS settings in Cognito
-   - Ensure environment variables are set correctly
+   - Check CORS settings in Cognito (add your deployment URL)
+   - Ensure environment variables are set correctly at build time
 
-2. **Routing Issues:**
+2. **Routing Issues (404 on refresh):**
    - Configure redirects for SPA routing
    - Ensure all routes redirect to `index.html`
+   - For nginx, the `docker_nginx.conf` handles this automatically
 
 3. **Build Failures:**
-   - Check Node.js version compatibility
-   - Verify all dependencies are installed
+   - Requires Node.js 22+
+   - Run `npm install` before building
+   - Check TypeScript errors with `npx tsc --noEmit`
    - Review build logs for specific errors
 
-4. **Performance Issues:**
-   - Optimize bundle size
-   - Enable compression
+4. **Environment Variables Not Working:**
+   - Ensure variables are prefixed with `VITE_`
+   - Variables must be set before `npm run build`
+   - For Docker, use `--build-arg` during build
+
+5. **Performance Issues:**
+   - Optimize bundle size with `npm run build -- --analyze`
+   - Enable compression on your hosting platform
    - Use CDN for static assets
 
 ### Performance Optimization
 
-1. **Enable Gzip Compression**
-2. **Set Cache Headers**
-3. **Optimize Images**
+1. **Enable Gzip/Brotli Compression** on your server
+2. **Set Cache Headers** (nginx config included handles this)
+3. **Optimize Images** before adding to the project
 4. **Use CDN for Static Assets**
-5. **Implement Service Worker for Caching**
+5. **Leverage PWA Caching** (already configured via vite-plugin-pwa)
 
 ## Security Considerations
 
 1. **HTTPS Only**: Always use HTTPS in production
-2. **Environment Variables**: Never commit sensitive data to version control
+2. **Environment Variables**: Never commit `.env` files to version control
 3. **CORS Configuration**: Configure allowed origins in AWS Cognito
-4. **Content Security Policy**: Implement CSP headers
-5. **Regular Updates**: Keep dependencies updated
+4. **Content Security Policy**: Implement CSP headers in your server config
+5. **Regular Updates**: Keep dependencies updated (`npm audit`)
 
 ## Monitoring and Analytics
 
 Consider setting up:
 
 1. **Error Tracking**: Sentry, LogRocket
-2. **Performance Monitoring**: Google Analytics, Web Vitals
+2. **Performance Monitoring**: Google Analytics, Web Vitals (already included)
 3. **User Analytics**: Mixpanel, Amplitude
 4. **Server Monitoring**: AWS CloudWatch, New Relic
 
@@ -214,4 +181,4 @@ For deployment issues:
 1. Check the troubleshooting section above
 2. Review platform-specific documentation
 3. Check AWS Cognito setup in `AWS_COGNITO_SETUP.md`
-4. Verify environment variables are correctly set 
+4. Verify environment variables are correctly set at build time

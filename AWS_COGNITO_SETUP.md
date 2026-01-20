@@ -110,15 +110,15 @@ After creating the User Pool, you'll need these values:
      ```
 
 2. **Replace the placeholder values in `env_dev` with your actual values**:
- REACT_APP_AWS_REGION=eu-north-1
+ VITE_AWS_REGION=eu-north-1
 
 # AWS Cognito User Pool ID (format: region_poolid)
 # Found in AWS Console > Cognito > User Pools > Your Pool > General Settings
-REACT_APP_COGNITO_USER_POOL_ID=eu-north-1_XXXX
+VITE_COGNITO_USER_POOL_ID=eu-north-1_XXXX
 
 # AWS Cognito App Client ID
 # Found in AWS Console > Cognito > User Pools > Your Pool > App Integration > App Clients
-REACT_APP_COGNITO_CLIENT_ID=XXXXXX
+VITE_COGNITO_CLIENT_ID=XXXXXX
 
 #
 ## Step 4: Test Your Setup
