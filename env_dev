@@ -1,30 +1,31 @@
 # DEV CONFIGURATION  👈  👈  👈  👈  👈
 
-#NB: React env vars should start with REACT_APP_👈  👈  👈  👈  👈
+#NB: React env vars should start with VITE_👈  👈  👈  👈  👈
 
 # AWS Cognito Configuration
 # AWS Region (e.g., us-east-1, eu-west-1, ap-southeast-1)
 AWS_REGION=eu-north-1
-REACT_APP_AWS_REGION=eu-north-1
+VITE_AWS_REGION=eu-north-1
 
 # AWS Cognito User Pool ID (format: region_poolid)
 # Found in AWS Console > Cognito > User Pools > Your Pool > General Settings
 COGNITO_USER_POOL_ID=your-user-pool-id
-REACT_APP_COGNITO_USER_POOL_ID=your-user-pool-id
+VITE_COGNITO_USER_POOL_ID=your-user-pool-id
 
 # AWS Cognito App Client ID
 # Found in AWS Console > Cognito > User Pools > Your Pool > App Integration > App Clients
 COGNITO_CLIENT_ID=your-app-cognito-client-id
-REACT_APP_COGNITO_CLIENT_ID=your-app-cognito-client-id
+VITE_COGNITO_CLIENT_ID=your-app-cognito-client-id
 
 # Optional: App Name
-REACT_APP_NAME="Time Tracking App"
+VITE_NAME="Time Tracking App"
 
 # Optional: App Version
-REACT_APP_VERSION=1.0.0 
+VITE_VERSION=1.0.0 
 
 # Dynamo Endpoint needed to development only. In prod will find region endpoint automatically.
 DYNAMODB_ENDPOINT=http://localhost:8000
+threadsCount=1
 dev=false
 port=8888
 host=localhost

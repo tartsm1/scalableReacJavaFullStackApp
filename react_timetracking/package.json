@@ -18,6 +18,7 @@
     "web-vitals": "^4.2.1"
   },
   "scripts": {
+    "postinstall": "rm -rf ./node_modules/amazon-cognito-identity-js/android",
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
