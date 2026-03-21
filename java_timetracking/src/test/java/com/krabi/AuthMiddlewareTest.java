@@ -142,4 +142,17 @@ class AuthMiddlewareTest {
         verify(response).end(anyString());
         verify(routingContext, never()).next();
     }
+
+    @Test
+    void requireRole_ShouldFail_WhenUserHasNullGroups() {
+        JsonObject user = new JsonObject().put("username", "testuser"); // no "groups" key
+        when(routingContext.get("user")).thenReturn(user);
+
+        Handler<RoutingContext> handler = authMiddleware.requireRole("admin");
+        handler.handle(routingContext);
+
+        verify(response).setStatusCode(403);
+        verify(response).end(anyString());
+        verify(routingContext, never()).next();
+    }
 }

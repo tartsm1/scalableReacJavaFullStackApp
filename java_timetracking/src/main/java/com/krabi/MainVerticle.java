@@ -58,15 +58,15 @@ public class MainVerticle extends AbstractVerticle {
 
         // These values should be configured via environment variables
         // Initialize Cognito authentication
-        String userPoolId = System.getenv(COGNITO_USER_POOL_ID);
-        String clientId = System.getenv(COGNITO_CLIENT_ID);
-        String region = System.getenv(AWS_REGION);
+        String userPoolId = getEnv(COGNITO_USER_POOL_ID);
+        String clientId = getEnv(COGNITO_CLIENT_ID);
+        String region = getEnv(AWS_REGION);
 
-        String port = System.getenv(PORT);
-        String host = System.getenv(HOST);
+        String port = getEnv(PORT);
+        String host = getEnv(HOST);
 
         // Check for dev mode
-        isDev = "true".equalsIgnoreCase(System.getenv(DEV));
+        isDev = "true".equalsIgnoreCase(getEnv(DEV));
         logger.info("isDev: {}", isDev);
         logger.info("userPoolId: {}", userPoolId);
         logger.info("clientId: {}", clientId);
@@ -148,6 +148,10 @@ public class MainVerticle extends AbstractVerticle {
                     logger.error(HTTP_SERVER_FAILED_TO_START, cause);
                     startPromise.fail(cause);
                 });
+    }
+
+    protected String getEnv(String name) {
+        return System.getenv(name);
     }
 
     private String getUserNameFromCtx(RoutingContext ctx) {

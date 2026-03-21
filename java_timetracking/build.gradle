@@ -13,6 +13,12 @@ ext {
     awsSdkVersion = '2.40.15'
 }
 
+configurations {
+    mockitoAgent {
+        transitive = false
+    }
+}
+
 dependencies {
     // Force newer Guava to avoid sun.misc.Unsafe deprecation warnings
     implementation 'com.google.guava:guava:33.4.0-jre'
@@ -30,8 +36,10 @@ dependencies {
     testImplementation "io.vertx:vertx-junit5:$vertxVersion"
     testImplementation "io.vertx:vertx-web-client:$vertxVersion"
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
-    testImplementation 'org.mockito:mockito-core:5.11.0'
-    testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
+    testImplementation 'org.mockito:mockito-core:5.23.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.23.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    mockitoAgent 'org.mockito:mockito-core:5.23.0'
 }
 
 application {
@@ -54,6 +62,7 @@ java {
 
 test {
     useJUnitPlatform()
+    jvmArgs("-javaagent:${configurations.mockitoAgent.singleFile}")
 }
 
 wrapper {

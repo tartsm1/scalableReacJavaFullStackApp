@@ -7,6 +7,8 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,9 +19,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
@@ -37,6 +41,18 @@ class TaskServiceTest {
     @BeforeEach
     public void setUp() {
         taskService = new TaskService(dynamoDbClient);
+    }
+
+    private DynamoDbException createDynamoDbException(String message) {
+        return (DynamoDbException) DynamoDbException.builder()
+                .message(message)
+                .awsErrorDetails(AwsErrorDetails.builder()
+                        .errorMessage(message)
+                        .errorCode("TestError")
+                        .serviceName("DynamoDB")
+                        .build())
+                .statusCode(400)
+                .build();
     }
 
     @Test
@@ -60,6 +76,31 @@ class TaskServiceTest {
     }
 
     @Test
+    void createTask_ShouldOmitUsername_WhenUsernameIsNull() {
+        Task task = new Task(2L, "2023-10-28", "Project B", 4, "Meeting", null);
+
+        taskService.createTask(task);
+
+        ArgumentCaptor<PutItemRequest> captor = ArgumentCaptor.forClass(PutItemRequest.class);
+        verify(dynamoDbClient).putItem(captor.capture());
+        PutItemRequest request = captor.getValue();
+
+        Map<String, AttributeValue> item = request.item();
+        assertNull(item.get("username"));
+        assertEquals("2", item.get("id").n());
+    }
+
+    @Test
+    void createTask_ShouldThrowRuntimeException_WhenDynamoDbException() {
+        Task task = new Task(1L, "2023-10-27", "Project A", 8, "Coding", "user1");
+        DynamoDbException dbException = createDynamoDbException("Create failed");
+        when(dynamoDbClient.putItem(any(PutItemRequest.class))).thenThrow(dbException);
+
+        RuntimeException thrown = assertThrows(RuntimeException.class, () -> taskService.createTask(task));
+        assertEquals("Create failed", thrown.getMessage());
+    }
+
+    @Test
     void getTask_ShouldReturnTask_WhenItemExists() {
         Map<String, AttributeValue> item = new HashMap<>();
         item.put("id", AttributeValue.builder().n("1").build());
@@ -77,6 +118,7 @@ class TaskServiceTest {
         assertNotNull(result);
         assertEquals(1L, result.getId());
         assertEquals("Project A", result.getProject());
+        assertEquals("user1", result.getUsername());
     }
 
     @Test
@@ -87,6 +129,36 @@ class TaskServiceTest {
         Task result = taskService.getTask(1L);
 
         assertNull(result);
+    }
+
+    @Test
+    void getTask_ShouldReturnNull_WhenItemIsNull() {
+        GetItemResponse response = GetItemResponse.builder().build();
+        when(dynamoDbClient.getItem(any(GetItemRequest.class))).thenReturn(response);
+
+        Task result = taskService.getTask(1L);
+
+        assertNull(result);
+    }
+
+    @Test
+    void getTask_ShouldReturnTask_WithNullUsername_WhenUsernameKeyMissing() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", AttributeValue.builder().n("5").build());
+        item.put("date", AttributeValue.builder().s("2023-11-01").build());
+        item.put("project", AttributeValue.builder().s("Project X").build());
+        item.put("hours", AttributeValue.builder().n("3").build());
+        item.put("task", AttributeValue.builder().s("Review").build());
+        // No "username" key
+
+        GetItemResponse response = GetItemResponse.builder().item(item).build();
+        when(dynamoDbClient.getItem(any(GetItemRequest.class))).thenReturn(response);
+
+        Task result = taskService.getTask(5L);
+
+        assertNotNull(result);
+        assertEquals(5L, result.getId());
+        assertNull(result.getUsername());
     }
 
     @Test
@@ -109,6 +181,15 @@ class TaskServiceTest {
     }
 
     @Test
+    void listTasks_ShouldReturnEmptyList_WhenDynamoDbException() {
+        DynamoDbException dbException = createDynamoDbException("Scan failed");
+        when(dynamoDbClient.scan(any(ScanRequest.class))).thenThrow(dbException);
+
+        RuntimeException thrown = assertThrows(RuntimeException.class, () -> taskService.listTasks("user1"));
+        assertEquals("Scan failed", thrown.getMessage());
+    }
+
+    @Test
     void updateTask_ShouldPutItem() {
         Task task = new Task(1L, "2023-10-27", "Project A", 8, "Coding", "user1");
 
@@ -127,5 +208,24 @@ class TaskServiceTest {
         
         assertEquals("Tasks", request.tableName());
         assertEquals("1", request.key().get("id").n());
+    }
+
+    @Test
+    void deleteTask_ShouldThrowRuntimeException_WhenDynamoDbException() {
+        DynamoDbException dbException = createDynamoDbException("Delete failed");
+        when(dynamoDbClient.deleteItem(any(DeleteItemRequest.class))).thenThrow(dbException);
+
+        RuntimeException thrown = assertThrows(RuntimeException.class, () -> taskService.deleteTask(1L));
+        assertEquals("Delete failed", thrown.getMessage());
+    }
+
+    @Test
+    void listTasks_ShouldReturnEmptyList_WhenNoTasks() {
+        ScanResponse response = ScanResponse.builder().items(List.of()).build();
+        when(dynamoDbClient.scan(any(ScanRequest.class))).thenReturn(response);
+
+        List<Task> results = taskService.listTasks("user1");
+
+        assertTrue(results.isEmpty());
     }
 }

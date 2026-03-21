@@ -8,6 +8,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
 public class AuthMiddleware {
+
     private static final Logger logger = LoggerFactory.getLogger(AuthMiddleware.class);
     private static final String DEVUSER = "devuser";
     static final String USERNAME = "username";
@@ -48,6 +49,7 @@ public class AuthMiddleware {
             }
 
             String token = authHeader.substring(7); // Remove "Bearer " prefix
+            // logger.info("Token: {}", token);
 
             authService.validateToken(token)
                     .onSuccess(userInfo -> {
@@ -80,8 +82,8 @@ public class AuthMiddleware {
             }
 
             // Check if user has the required role
-            if (user.getJsonArray("groups") != null &&
-                    user.getJsonArray("groups").contains(role)) {
+            if (user.getJsonArray("groups") != null
+                    && user.getJsonArray("groups").contains(role)) {
                 ctx.next();
             } else {
                 ctx.response()
