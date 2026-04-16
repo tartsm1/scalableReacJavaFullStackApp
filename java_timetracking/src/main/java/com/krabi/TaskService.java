@@ -19,37 +19,43 @@ import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 public class TaskService {
 
     private final DynamoDbClient dynamoDbClient;
-    private final String tableName = "Tasks";
+    private static final String TABLE_NAME = "Tasks";
     private static final Logger logger = LoggerFactory.getLogger(TaskService.class);
 
     public TaskService(DynamoDbClient dynamoDbClient) {
         this.dynamoDbClient = dynamoDbClient;
     }
 
-    public void createTask(Task task) {
+    public Task createTask(Task task) {
+        // Generate ID if not set
+        if (task.id() == 0) {
+            task = task.withId(System.currentTimeMillis());
+        }
+
         Map<String, AttributeValue> item = new HashMap<>();
-        item.put("id", AttributeValue.builder().n(Long.toString(task.getId())).build());
-        item.put("date", AttributeValue.builder().s(task.getDate()).build());
-        item.put("project", AttributeValue.builder().s(task.getProject()).build());
-        item.put("hours", AttributeValue.builder().n(Integer.toString(task.getHours())).build());
-        item.put("task", AttributeValue.builder().s(task.getTask()).build());
-        if (task.getUsername() != null) {
-            item.put("username", AttributeValue.builder().s(task.getUsername()).build());
+        item.put("id", AttributeValue.builder().n(Long.toString(task.id())).build());
+        item.put("date", AttributeValue.builder().s(task.date()).build());
+        item.put("project", AttributeValue.builder().s(task.project()).build());
+        item.put("hours", AttributeValue.builder().n(Integer.toString(task.hours())).build());
+        item.put("task", AttributeValue.builder().s(task.task()).build());
+        if (task.username() != null) {
+            item.put("username", AttributeValue.builder().s(task.username()).build());
         }
         logger.info("Creating task: {}", item);
-        PutItemRequest request = PutItemRequest.builder().tableName(tableName).item(item).build();
+        PutItemRequest request = PutItemRequest.builder().tableName(TABLE_NAME).item(item).build();
         logger.info("Request: {}", request);
         try {
             dynamoDbClient.putItem(request);
         } catch (DynamoDbException e) {
             logDynamoDbError(e);
         }
+        return task;
     }
 
     public Task getTask(long id) {
-        Map<String, AttributeValue> key = new HashMap<>();
-        key.put("id", AttributeValue.builder().n(Long.toString(id)).build());
-        GetItemRequest request = GetItemRequest.builder().tableName(tableName).key(key).build();
+        Map<String, AttributeValue> key = Map.of(
+                "id", AttributeValue.builder().n(Long.toString(id)).build());
+        GetItemRequest request = GetItemRequest.builder().tableName(TABLE_NAME).key(key).build();
         Map<String, AttributeValue> item = dynamoDbClient.getItem(request).item();
         if (item == null || item.isEmpty()) {
             return null;
@@ -58,11 +64,15 @@ public class TaskService {
     }
 
     public List<Task> listTasks(String userNameFromCtx) {
+        if (userNameFromCtx == null) {
+            logger.warn("listTasks called with null username, returning empty list");
+            return List.of();
+        }
         // in real production app use always Query instead Scan!!!
-        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
-        expressionAttributeValues.put(":username", AttributeValue.builder().s(userNameFromCtx).build());
+        Map<String, AttributeValue> expressionAttributeValues = Map.of(
+                ":username", AttributeValue.builder().s(userNameFromCtx).build());
         ScanRequest request = ScanRequest.builder()
-                .tableName(tableName)
+                .tableName(TABLE_NAME)
                 .filterExpression("username = :username")
                 .expressionAttributeValues(expressionAttributeValues)
                 .build();
@@ -78,14 +88,14 @@ public class TaskService {
         return tasks;
     }
 
-    public void updateTask(Task task) {
-        createTask(task); // Overwrites existing item
+    public Task updateTask(Task task) {
+        return createTask(task); // Overwrites existing item
     }
 
     public void deleteTask(long id) {
-        Map<String, AttributeValue> key = new HashMap<>();
-        key.put("id", AttributeValue.builder().n(Long.toString(id)).build());
-        DeleteItemRequest request = DeleteItemRequest.builder().tableName(tableName).key(key).build();
+        Map<String, AttributeValue> key = Map.of(
+                "id", AttributeValue.builder().n(Long.toString(id)).build());
+        DeleteItemRequest request = DeleteItemRequest.builder().tableName(TABLE_NAME).key(key).build();
         try {
             dynamoDbClient.deleteItem(request);
         } catch (DynamoDbException e) {

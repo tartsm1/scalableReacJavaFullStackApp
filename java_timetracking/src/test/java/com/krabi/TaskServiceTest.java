@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import static org.mockito.ArgumentMatchers.any;
 import org.mockito.Mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -76,6 +77,21 @@ class TaskServiceTest {
     }
 
     @Test
+    void createTask_ShouldGenerateId_WhenIdIsZero() {
+        Task task = new Task("2023-10-27", "Project A", 8, "Coding", "user1");
+        assertEquals(0, task.id());
+
+        Task created = taskService.createTask(task);
+
+        assertTrue(created.id() > 0, "ID should be auto-generated when 0");
+
+        ArgumentCaptor<PutItemRequest> captor = ArgumentCaptor.forClass(PutItemRequest.class);
+        verify(dynamoDbClient).putItem(captor.capture());
+        PutItemRequest request = captor.getValue();
+        assertEquals(Long.toString(created.id()), request.item().get("id").n());
+    }
+
+    @Test
     void createTask_ShouldOmitUsername_WhenUsernameIsNull() {
         Task task = new Task(2L, "2023-10-28", "Project B", 4, "Meeting", null);
 
@@ -116,9 +132,9 @@ class TaskServiceTest {
         Task result = taskService.getTask(1L);
 
         assertNotNull(result);
-        assertEquals(1L, result.getId());
-        assertEquals("Project A", result.getProject());
-        assertEquals("user1", result.getUsername());
+        assertEquals(1L, result.id());
+        assertEquals("Project A", result.project());
+        assertEquals("user1", result.username());
     }
 
     @Test
@@ -157,8 +173,8 @@ class TaskServiceTest {
         Task result = taskService.getTask(5L);
 
         assertNotNull(result);
-        assertEquals(5L, result.getId());
-        assertNull(result.getUsername());
+        assertEquals(5L, result.id());
+        assertNull(result.username());
     }
 
     @Test
@@ -177,11 +193,20 @@ class TaskServiceTest {
         List<Task> results = taskService.listTasks("user1");
 
         assertEquals(1, results.size());
-        assertEquals("Project A", results.get(0).getProject());
+        assertEquals("Project A", results.get(0).project());
     }
 
     @Test
-    void listTasks_ShouldReturnEmptyList_WhenDynamoDbException() {
+    void listTasks_ShouldReturnEmptyList_WhenNullUsername() {
+        List<Task> results = taskService.listTasks(null);
+
+        assertTrue(results.isEmpty());
+        // Should not even call DynamoDB
+        verify(dynamoDbClient, never()).scan(any(ScanRequest.class));
+    }
+
+    @Test
+    void listTasks_ShouldThrowRuntimeException_WhenDynamoDbException() {
         DynamoDbException dbException = createDynamoDbException("Scan failed");
         when(dynamoDbClient.scan(any(ScanRequest.class))).thenThrow(dbException);
 

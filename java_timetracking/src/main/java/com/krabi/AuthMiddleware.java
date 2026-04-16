@@ -49,7 +49,6 @@ public class AuthMiddleware {
             }
 
             String token = authHeader.substring(7); // Remove "Bearer " prefix
-            // logger.info("Token: {}", token);
 
             authService.validateToken(token)
                     .onSuccess(userInfo -> {

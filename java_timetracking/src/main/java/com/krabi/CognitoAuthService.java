@@ -19,10 +19,6 @@ import com.auth0.jwt.interfaces.JWTVerifier;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AuthFlowType;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.InitiateAuthRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.InitiateAuthResponse;
 
 public class CognitoAuthService {
 
@@ -30,19 +26,16 @@ public class CognitoAuthService {
     private final String userPoolId;
     private final String clientId;
     private final String region;
-    private final CognitoIdentityProviderClient cognitoClient;
     private final Vertx vertx;
     private JwkProvider jwkProvider;
-    private final Map<Algorithm, JWTVerifier> algorithmMap = new java.util.concurrent.ConcurrentHashMap<>();
+    // Cache verifiers by key ID (kid)
+    private final Map<String, JWTVerifier> verifierCache = new java.util.concurrent.ConcurrentHashMap<>();
 
     public CognitoAuthService(Vertx vertx, String userPoolId, String clientId, String region) {
         this.vertx = vertx;
         this.userPoolId = userPoolId;
         this.clientId = clientId;
         this.region = region;
-        this.cognitoClient = CognitoIdentityProviderClient.builder()
-                .region(software.amazon.awssdk.regions.Region.of(region))
-                .build();
         initializeJwkProvider();
     }
 
@@ -57,15 +50,24 @@ public class CognitoAuthService {
     }
 
     public Future<JsonObject> validateToken(String token) {
-        // Don't remove blocking calls, this will break authentification
+        // Don't remove blocking calls, this will break authentication
         return vertx.executeBlocking(() -> {
             DecodedJWT jwt = JWT.decode(token);
-            // Verify the token signature
-            RSAPublicKey publicKey = (RSAPublicKey) jwkProvider.get(jwt.getKeyId()).getPublicKey();
-            Algorithm algorithm = Algorithm.RSA256(publicKey, null);
-            JWTVerifier verifier = algorithmMap.computeIfAbsent(algorithm, alg -> JWT.require(alg)
-                    .withIssuer(String.format("https://cognito-idp.%s.amazonaws.com/%s", region, userPoolId))
-                    .build());
+            String kid = jwt.getKeyId();
+
+            JWTVerifier verifier = verifierCache.computeIfAbsent(kid, k -> {
+                try {
+                    RSAPublicKey publicKey = (RSAPublicKey) jwkProvider.get(k).getPublicKey();
+                    Algorithm algorithm = Algorithm.RSA256(publicKey, null);
+                    return JWT.require(algorithm)
+                            .withIssuer(
+                                    String.format("https://cognito-idp.%s.amazonaws.com/%s", region, userPoolId))
+                            .build();
+                } catch (Exception e) {
+                    throw new RuntimeException("Failed to build JWT verifier for kid: " + k, e);
+                }
+            });
+
             DecodedJWT verifiedJwt = verifier.verify(token);
 
             // Accept if either aud or client_id matches clientId
@@ -84,36 +86,13 @@ public class CognitoAuthService {
                     .put("username", verifiedJwt.getClaim("cognito:username").asString())
                     .put("groups", verifiedJwt.getClaim("cognito:groups").asList(String.class));
 
-            logger.info("token validated, username: {}", userInfo.getString("username"));
+            logger.debug("token validated, username: {}", userInfo.getString("username"));
             return userInfo;
         });
     }
 
-    // this method authenticateUser not used as authentication handled by frontend
-    public Future<JsonObject> authenticateUser(String username, String password) {
-        return vertx.executeBlocking(() -> {
-            InitiateAuthRequest authRequest = InitiateAuthRequest.builder()
-                    .authFlow(AuthFlowType.USER_PASSWORD_AUTH)
-                    .clientId(clientId)
-                    .authParameters(Map.of("USERNAME", username, "PASSWORD", password))
-                    .build();
-
-            InitiateAuthResponse authResponse = cognitoClient.initiateAuth(authRequest);
-
-            if (authResponse.authenticationResult() != null) {
-                return new JsonObject()
-                        .put("accessToken", authResponse.authenticationResult().accessToken())
-                        .put("idToken", authResponse.authenticationResult().idToken())
-                        .put("refreshToken", authResponse.authenticationResult().refreshToken());
-            } else {
-                throw new RuntimeException("Authentication failed");
-            }
-        });
-    }
-
     public void close() {
-        if (cognitoClient != null) {
-            cognitoClient.close();
-        }
+        // JwkProvider and verifier cache don't require explicit cleanup
+        logger.debug("CognitoAuthService closed");
     }
 }

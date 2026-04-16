@@ -120,7 +120,7 @@ class MainVerticleTest {
         TestableMainVerticle verticle = createDevVerticle();
         vertx.deployVerticle(verticle)
                 .onSuccess(id -> testContext.verify(() -> {
-                    assertTrue(verticle.isDev);
+                    assertTrue(verticle.isDev());
                     testContext.completeNow();
                 }))
                 .onFailure(testContext::failNow);
@@ -146,5 +146,38 @@ class MainVerticleTest {
                             .onFailure(testContext::failNow);
                 })
                 .onFailure(testContext::failNow);
+    }
+
+    @Test
+    void testInvalidTaskId_ShouldReturn400(Vertx vertx, VertxTestContext testContext) {
+        vertx.deployVerticle(createDevVerticle())
+                .onSuccess(id -> {
+                    WebClient client = WebClient.create(vertx);
+                    client.get(port, "localhost", "/api/tasks/not-a-number")
+                            .send()
+                            .onSuccess(response -> testContext.verify(() -> {
+                                assertEquals(400, response.statusCode());
+                                testContext.completeNow();
+                            }))
+                            .onFailure(testContext::failNow);
+                })
+                .onFailure(testContext::failNow);
+    }
+
+    @Test
+    void testStartWithoutConfig_ShouldFail(Vertx vertx, VertxTestContext testContext) {
+        // Missing required env vars in non-dev mode should fail deployment
+        TestableMainVerticle verticle = new TestableMainVerticle(Map.of(
+                "port", String.valueOf(port),
+                "host", "localhost"
+        ));
+        vertx.deployVerticle(verticle)
+                .onSuccess(id -> testContext.failNow("Should have failed without Cognito config"))
+                .onFailure(err -> {
+                    testContext.verify(() -> {
+                        assertTrue(err.getMessage().contains("COGNITO"));
+                        testContext.completeNow();
+                    });
+                });
     }
 }

@@ -47,16 +47,4 @@ class CognitoAuthServiceTest {
                     testContext.completeNow();
                 });
     }
-
-    @Test
-    void testAuthenticateUser_ShouldFailWithInvalidCredentials(Vertx vertx, VertxTestContext testContext) {
-        CognitoAuthService service = new CognitoAuthService(vertx, "us-east-1_TestPool", "testClientId", "us-east-1");
-
-        service.authenticateUser("fakeuser", "fakepassword")
-                .onSuccess(result -> testContext.failNow("Should have failed with invalid credentials"))
-                .onFailure(err -> {
-                    testContext.verify(() -> assertNotNull(err.getMessage()));
-                    testContext.completeNow();
-                });
-    }
 }

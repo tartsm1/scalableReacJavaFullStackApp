@@ -13,9 +13,9 @@ public class DynamoDBClientProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBClientProvider.class);
 
-    private static DynamoDbClient client;
+    private static volatile DynamoDbClient client;
 
-    public static DynamoDbClient getClient() {
+    public static synchronized DynamoDbClient getClient() {
         if (client == null) {
 
             String endpoint = System.getenv("DYNAMODB_ENDPOINT");
