@@ -1,5 +1,7 @@
 package com.krabi;
 
+import java.util.function.Consumer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -144,19 +146,9 @@ public class MainVerticle extends AbstractVerticle {
                 return;
             }
             String username = getUserNameFromCtx(ctx);
-            vertx.executeBlocking(() -> taskService.getTask(id))
-                    .onSuccess(task -> {
-                        if (task == null) {
-                            ctx.response().setStatusCode(404).end();
-                        } else if (username != null && !username.equals(task.username())) {
-                            ctx.response().setStatusCode(403)
-                                    .putHeader("content-type", "application/json")
-                                    .end(new JsonObject().put("error", "Access denied").encode());
-                        } else {
-                            ctx.response().putHeader("content-type", "application/json").end(Json.encode(task));
-                        }
-                    })
-                    .onFailure(ctx::fail);
+            withAuthorizedTask(ctx, id, username, taskService, task -> {
+                ctx.response().putHeader("content-type", "application/json").end(Json.encode(task));
+            });
         });
 
         apiRouter.post("/tasks").handler(authMiddleware.authenticate()).handler(ctx -> {
@@ -198,21 +190,12 @@ public class MainVerticle extends AbstractVerticle {
                 return;
             }
             String username = getUserNameFromCtx(ctx);
-            // Verify ownership before updating
-            vertx.executeBlocking(() -> taskService.getTask(id))
-                    .onSuccess(existing -> {
-                        if (existing != null && username != null && !username.equals(existing.username())) {
-                            ctx.response().setStatusCode(403)
-                                    .putHeader("content-type", "application/json")
-                                    .end(new JsonObject().put("error", "Access denied").encode());
-                            return;
-                        }
-                        Task taskToUpdate = task.withIdAndUsername(id, username);
-                        vertx.executeBlocking(() -> taskService.updateTask(taskToUpdate))
-                                .onSuccess(v -> ctx.response().setStatusCode(204).end())
-                                .onFailure(ctx::fail);
-                    })
-                    .onFailure(ctx::fail);
+            withAuthorizedTask(ctx, id, username, taskService, existing -> {
+                Task taskToUpdate = task.withIdAndUsername(id, username);
+                vertx.executeBlocking(() -> taskService.updateTask(taskToUpdate))
+                        .onSuccess(v -> ctx.response().setStatusCode(204).end())
+                        .onFailure(ctx::fail);
+            });
         });
 
         apiRouter.delete("/tasks/:id").handler(authMiddleware.authenticate()).handler(ctx -> {
@@ -226,27 +209,14 @@ public class MainVerticle extends AbstractVerticle {
                 return;
             }
             String username = getUserNameFromCtx(ctx);
-            // Verify ownership before deleting
-            vertx.executeBlocking(() -> taskService.getTask(id))
-                    .onSuccess(existing -> {
-                        if (existing == null) {
-                            ctx.response().setStatusCode(404).end();
-                            return;
-                        }
-                        if (username != null && !username.equals(existing.username())) {
-                            ctx.response().setStatusCode(403)
-                                    .putHeader("content-type", "application/json")
-                                    .end(new JsonObject().put("error", "Access denied").encode());
-                            return;
-                        }
-                        vertx.executeBlocking(() -> {
-                            taskService.deleteTask(id);
-                            return null;
-                        })
-                                .onSuccess(v -> ctx.response().setStatusCode(204).end())
-                                .onFailure(ctx::fail);
-                    })
-                    .onFailure(ctx::fail);
+            withAuthorizedTask(ctx, id, username, taskService, existing -> {
+                vertx.executeBlocking(() -> {
+                    taskService.deleteTask(id);
+                    return null;
+                })
+                        .onSuccess(v -> ctx.response().setStatusCode(204).end())
+                        .onFailure(ctx::fail);
+            });
         });
 
         apiRouter.get("/authtest").handler(authMiddleware.authenticate()).handler(ctx -> {
@@ -283,6 +253,28 @@ public class MainVerticle extends AbstractVerticle {
 
     boolean isDev() {
         return isDev;
+    }
+
+    /**
+     * Fetches a task by ID, verifies it exists (404) and that the requesting user
+     * owns it (403). If both checks pass, invokes the callback with the verified
+     * task.
+     */
+    private void withAuthorizedTask(RoutingContext ctx, long id, String username,
+            TaskService taskService, Consumer<Task> onAuthorized) {
+        vertx.executeBlocking(() -> taskService.getTask(id))
+                .onSuccess(task -> {
+                    if (task == null) {
+                        ctx.response().setStatusCode(404).end();
+                    } else if (username != null && !username.equals(task.username())) {
+                        ctx.response().setStatusCode(403)
+                                .putHeader("content-type", "application/json")
+                                .end(new JsonObject().put("error", "Access denied").encode());
+                    } else {
+                        onAuthorized.accept(task);
+                    }
+                })
+                .onFailure(ctx::fail);
     }
 
     private String getUserNameFromCtx(RoutingContext ctx) {

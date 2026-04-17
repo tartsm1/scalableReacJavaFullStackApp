@@ -9,7 +9,7 @@ A modern, scalable time tracking application built for performance and enterpris
 - **CI/CD Pipeline**: AWS CodeBuild integration with automated Docker image builds and ECR deployment
 - **Secure Authentication**: AWS Cognito with JWT token-based authentication and role-based access control
 - **High-Performance Database**: AWS DynamoDB for massive scalability and low-latency operations
-- **Comprehensive Testing**: 17 Java unit tests (JUnit 5 + Mockito) with 100% pass rate
+- **Comprehensive Testing**: 48 Java unit tests (JUnit 5 + Mockito) with 100% pass rate
 - **Modern Stack**: Java 25 with Vert.x 5.0, React 18 with TypeScript, Material-UI
 - **Small Footprint**: Java Vert.x framework optimized for minimal memory usage and fast performance
 
@@ -153,7 +153,7 @@ Git Push → CodeBuild → Docker Build → ECR Push → EKS Deployment
 
 ### Java Backend Tests
 
-**Test Coverage**: 17 unit tests, 100% pass rate
+**Test Coverage**: 48 unit tests, 100% pass rate
 
 ```bash
 cd java_timetracking
@@ -161,19 +161,31 @@ cd java_timetracking
 ```
 
 **Test Suites**:
-1. **AuthMiddlewareTest** (8 tests)
+1. **AuthMiddlewareTest** (9 tests)
    - Token validation and authentication flows
    - Role-based access control
    - Development mode authentication bypass
 
-2. **TaskServiceTest** (6 tests)
+2. **TaskServiceTest** (15 tests)
    - CRUD operations with DynamoDB
    - Task retrieval and listing
    - Error handling for missing items
 
-3. **TaskTest** (3 tests)
+3. **TaskTest** (10 tests)
    - Model validation
    - Constructor and getter/setter tests
+
+4. **CognitoAuthServiceTest** (4 tests)
+   - Token decoding and user validation
+   - Error handling for invalid credentials
+
+5. **DynamoDBClientProviderTest** (2 tests)
+   - Client initialization
+   - Configuration setup
+
+6. **MainVerticleTest** (8 tests)
+   - Server initialization and route registration
+   - Graceful shutdown logic
 
 **Technologies**: JUnit 5, Mockito, Vert.x JUnit 5 integration
 
@@ -184,7 +196,7 @@ cd react_timetracking
 npm test
 ```
 
-**Test Framework**: Jest + React Testing Library
+**Test Framework**: Vitest + React Testing Library
 
 # React Time Tracking App
 
@@ -473,7 +485,8 @@ All API endpoints are prefixed with `/api`.
   "date": "2025-07-05",
   "project": "Project Name",
   "hours": 8,
-  "task": "Task description"
+  "task": "Task description",
+  "username": "user@example.com"
 }
 ```
 
@@ -508,10 +521,13 @@ All API endpoints are prefixed with `/api`.
 ./gradlew test
 ```
 
-**Test Results**: 17 tests across 3 test suites
-- ✅ AuthMiddlewareTest: 8 tests
-- ✅ TaskServiceTest: 6 tests  
-- ✅ TaskTest: 3 tests
+**Test Results**: 48 tests across 6 test suites
+- ✅ AuthMiddlewareTest: 9 tests
+- ✅ TaskServiceTest: 15 tests  
+- ✅ TaskTest: 10 tests
+- ✅ CognitoAuthServiceTest: 4 tests
+- ✅ DynamoDBClientProviderTest: 2 tests
+- ✅ MainVerticleTest: 8 tests
 
 ### Building without Tests
 
@@ -555,7 +571,7 @@ docker run -p 8888:8888 \
 
 ### Frontend
 - **React**: 18.3.1
-- **TypeScript**: 4.9.5
+- **TypeScript**: 5.4.0
 - **UI Framework**: Material-UI 5.15.21
 - **State Management**: React Context API
 - **Authentication**: amazon-cognito-identity-js 6.3.15
@@ -634,4 +650,3 @@ My Slack: [friendly-solutions](https://join.slack.com/t/friendlysolutionsco/shar
 
 ## License
 MIT License
-Free to use unless reference to my homepage https://friendly-solution.com/ not removed ;) 

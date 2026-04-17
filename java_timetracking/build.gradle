@@ -20,9 +20,6 @@ configurations {
 }
 
 dependencies {
-    // Force newer Guava to avoid sun.misc.Unsafe deprecation warnings
-    implementation 'com.google.guava:guava:33.4.0-jre'
-    
     implementation "io.vertx:vertx-core:$vertxVersion"
     implementation "io.vertx:vertx-web:$vertxVersion"
     implementation "software.amazon.awssdk:dynamodb:$awsSdkVersion"
