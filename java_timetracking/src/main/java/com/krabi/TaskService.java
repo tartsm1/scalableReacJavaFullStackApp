@@ -27,10 +27,6 @@ public class TaskService {
     }
 
     public Task createTask(Task task) {
-        // Generate ID if not set
-        if (task.id() == 0) {
-            task = task.withId(System.currentTimeMillis());
-        }
 
         Map<String, AttributeValue> item = new HashMap<>();
         item.put("id", AttributeValue.builder().n(Long.toString(task.id())).build());

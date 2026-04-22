@@ -65,7 +65,7 @@ class TaskServiceTest {
         ArgumentCaptor<PutItemRequest> captor = ArgumentCaptor.forClass(PutItemRequest.class);
         verify(dynamoDbClient).putItem(captor.capture());
         PutItemRequest request = captor.getValue();
-        
+
         assertEquals("Tasks", request.tableName());
         Map<String, AttributeValue> item = request.item();
         assertEquals("1", item.get("id").n());
@@ -77,13 +77,13 @@ class TaskServiceTest {
     }
 
     @Test
-    void createTask_ShouldGenerateId_WhenIdIsZero() {
+    void createTask_ShouldNotGenerateId_WhenIdIsZero() {
         Task task = new Task("2023-10-27", "Project A", 8, "Coding", "user1");
         assertEquals(0, task.id());
 
         Task created = taskService.createTask(task);
 
-        assertTrue(created.id() > 0, "ID should be auto-generated when 0");
+        assertEquals(0, created.id(), "ID should be not auto-generated when 0, DynamoDb will set it");
 
         ArgumentCaptor<PutItemRequest> captor = ArgumentCaptor.forClass(PutItemRequest.class);
         verify(dynamoDbClient).putItem(captor.capture());
@@ -230,7 +230,7 @@ class TaskServiceTest {
         ArgumentCaptor<DeleteItemRequest> captor = ArgumentCaptor.forClass(DeleteItemRequest.class);
         verify(dynamoDbClient).deleteItem(captor.capture());
         DeleteItemRequest request = captor.getValue();
-        
+
         assertEquals("Tasks", request.tableName());
         assertEquals("1", request.key().get("id").n());
     }
